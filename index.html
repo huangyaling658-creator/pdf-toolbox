@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF 工具箱 — 拆分 & 合并</title>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  min-height: 100vh;
+}
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+h1 {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.subtitle {
+  text-align: center;
+  color: #86868b;
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+
+/* Upload area */
+.upload-area {
+  border: 2px dashed #d2d2d7;
+  border-radius: 16px;
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fff;
+  margin-bottom: 24px;
+}
+.upload-area:hover, .upload-area.dragover {
+  border-color: #0071e3;
+  background: #f0f7ff;
+}
+.upload-area .icon { font-size: 48px; margin-bottom: 12px; }
+.upload-area p { color: #86868b; font-size: 15px; }
+.upload-area .filename {
+  color: #1d1d1f;
+  font-weight: 600;
+  font-size: 16px;
+  margin-top: 8px;
+}
+#fileInput { display: none; }
+
+/* File info */
+.file-info {
+  display: none;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  align-items: center;
+  gap: 12px;
+}
+.file-info.show { display: flex; }
+.file-info .meta { flex: 1; }
+.file-info .name { font-weight: 600; font-size: 15px; }
+.file-info .pages { color: #86868b; font-size: 13px; margin-top: 2px; }
+.file-info .remove {
+  background: none; border: none; cursor: pointer;
+  color: #ff3b30; font-size: 20px; padding: 4px 8px;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  background: #e8e8ed;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.2s;
+  color: #86868b;
+}
+.tab-btn:first-child { border-radius: 10px 0 0 10px; }
+.tab-btn:last-child { border-radius: 0 10px 10px 0; }
+.tab-btn.active {
+  background: #0071e3;
+  color: #fff;
+}
+
+/* Panels */
+.panel {
+  display: none;
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.panel.active { display: block; }
+
+.panel h2 {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+.panel .desc {
+  color: #86868b;
+  font-size: 13px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* Split mode */
+.split-mode { margin-bottom: 20px; }
+.split-mode label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1.5px solid #d2d2d7;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+.split-mode label:hover { border-color: #0071e3; }
+.split-mode input[type="radio"]:checked + span { color: #0071e3; font-weight: 600; }
+.split-mode label:has(input:checked) { border-color: #0071e3; background: #f0f7ff; }
+
+.split-options { margin-top: 16px; }
+.split-option { display: none; margin-bottom: 16px; }
+.split-option.active { display: block; }
+
+/* Inputs */
+input[type="text"], input[type="number"] {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #d2d2d7;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+input:focus { border-color: #0071e3; }
+.input-hint {
+  color: #86868b;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+/* Merge ranges */
+.range-list { margin-bottom: 16px; }
+.range-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  background: #f5f5f7;
+  padding: 10px 14px;
+  border-radius: 10px;
+}
+.range-item span { font-size: 14px; flex: 1; }
+.range-item .remove-range {
+  background: none; border: none; cursor: pointer;
+  color: #ff3b30; font-size: 18px;
+}
+.add-range-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.add-range-row input {
+  width: 80px;
+  text-align: center;
+}
+.add-range-row .sep {
+  color: #86868b;
+  font-size: 14px;
+}
+
+/* Buttons */
+.btn {
+  padding: 12px 28px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary {
+  background: #0071e3;
+  color: #fff;
+}
+.btn-primary:hover { background: #0077ed; }
+.btn-primary:disabled {
+  background: #d2d2d7;
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: #e8e8ed;
+  color: #1d1d1f;
+}
+.btn-secondary:hover { background: #d2d2d7; }
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.action-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* Results */
+.results {
+  display: none;
+  margin-top: 24px;
+}
+.results.show { display: block; }
+.results h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+.result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f0faf0;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.result-item .r-icon { font-size: 24px; }
+.result-item .r-info { flex: 1; }
+.result-item .r-name { font-weight: 600; font-size: 14px; }
+.result-item .r-detail { color: #86868b; font-size: 12px; margin-top: 2px; }
+.result-item .btn { white-space: nowrap; }
+
+/* Progress */
+.progress-bar {
+  display: none;
+  height: 4px;
+  background: #e8e8ed;
+  border-radius: 2px;
+  margin-top: 16px;
+  overflow: hidden;
+}
+.progress-bar.show { display: block; }
+.progress-fill {
+  height: 100%;
+  background: #0071e3;
+  border-radius: 2px;
+  transition: width 0.3s;
+  width: 0%;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #1d1d1f;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: transform 0.3s;
+  z-index: 100;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>PDF 工具箱</h1>
+  <p class="subtitle">拆分 & 合并，纯浏览器本地处理，文件不上传</p>
+
+  <!-- Upload -->
+  <div class="upload-area" id="uploadArea">
+    <div class="icon">📄</div>
+    <p>点击选择或拖拽 PDF 文件到这里</p>
+  </div>
+  <input type="file" id="fileInput" accept=".pdf">
+
+  <!-- File info -->
+  <div class="file-info" id="fileInfo">
+    <div style="font-size:32px">📎</div>
+    <div class="meta">
+      <div class="name" id="fileName"></div>
+      <div class="pages" id="filePages"></div>
+    </div>
+    <button class="remove" id="removeFile" title="移除文件">&times;</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="split">拆分 PDF</button>
+    <button class="tab-btn" data-tab="merge">合并页面范围</button>
+  </div>
+
+  <!-- Split Panel -->
+  <div class="panel active" id="panel-split">
+    <h2>拆分 PDF</h2>
+    <p class="desc">将一个 PDF 按规则拆成多个独立的 PDF 文件</p>
+
+    <div class="split-mode">
+      <label>
+        <input type="radio" name="splitMode" value="every" checked>
+        <span>每 N 页拆分一个文件</span>
+      </label>
+      <label>
+        <input type="radio" name="splitMode" value="custom">
+        <span>自定义页码范围拆分</span>
+      </label>
+    </div>
+
+    <div class="split-options">
+      <div class="split-option active" id="opt-every">
+        <input type="number" id="everyN" min="1" value="1" placeholder="每几页拆分">
+        <p class="input-hint">例如：输入 15，则每 15 页生成一个 PDF</p>
+      </div>
+      <div class="split-option" id="opt-custom">
+        <input type="text" id="customRanges" placeholder="例如：1-15, 16-30, 31-50">
+        <p class="input-hint">用逗号分隔多个范围，如 1-15, 20-30, 45-60。每个范围生成一个独立 PDF</p>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-primary" id="btnSplit" disabled>开始拆分</button>
+    </div>
+    <div class="progress-bar" id="splitProgress"><div class="progress-fill"></div></div>
+    <div class="results" id="splitResults"><h3>拆分结果</h3><div id="splitList"></div></div>
+  </div>
+
+  <!-- Merge Panel -->
+  <div class="panel" id="panel-merge">
+    <h2>合并页面范围</h2>
+    <p class="desc">从 PDF 中选取多段页码范围，合并成一个新的 PDF。<br>例如：第 1-15 页 + 第 25-30 页 + 第 99-105 页 → 合成一个文件</p>
+
+    <div class="range-list" id="rangeList"></div>
+
+    <div class="add-range-row">
+      <input type="number" id="rangeFrom" min="1" placeholder="起始页">
+      <span class="sep">—</span>
+      <input type="number" id="rangeTo" min="1" placeholder="结束页">
+      <button class="btn btn-secondary btn-sm" id="btnAddRange">添加范围</button>
+    </div>
+    <p class="input-hint" style="margin-top:6px">逐段添加需要保留的页码范围</p>
+
+    <div class="action-row">
+      <button class="btn btn-secondary btn-sm" id="btnClearRanges">清空</button>
+      <button class="btn btn-primary" id="btnMerge" disabled>合并并下载</button>
+    </div>
+    <div class="progress-bar" id="mergeProgress"><div class="progress-fill"></div></div>
+    <div class="results" id="mergeResults"><h3>合并结果</h3><div id="mergeList"></div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const { PDFDocument } = PDFLib;
+
+let pdfBytes = null;
+let pdfDoc = null;
+let totalPages = 0;
+let originalName = '';
+
+// DOM
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+const fileInfo = document.getElementById('fileInfo');
+const tabs = document.getElementById('tabs');
+
+// Upload
+uploadArea.addEventListener('click', () => fileInput.click());
+uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+uploadArea.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type === 'application/pdf') loadFile(file);
+  else showToast('请上传 PDF 文件');
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) loadFile(fileInput.files[0]);
+});
+document.getElementById('removeFile').addEventListener('click', resetFile);
+
+async function loadFile(file) {
+  originalName = file.name.replace(/\.pdf$/i, '');
+  pdfBytes = await file.arrayBuffer();
+  try {
+    pdfDoc = await PDFDocument.load(pdfBytes);
+    totalPages = pdfDoc.getPageCount();
+  } catch(e) {
+    showToast('无法读取此 PDF，文件可能已损坏');
+    return;
+  }
+  document.getElementById('fileName').textContent = file.name;
+  document.getElementById('filePages').textContent = `共 ${totalPages} 页 · ${(file.size/1024/1024).toFixed(1)} MB`;
+  fileInfo.classList.add('show');
+  uploadArea.style.display = 'none';
+  document.getElementById('btnSplit').disabled = false;
+  document.getElementById('everyN').max = totalPages;
+  document.getElementById('rangeFrom').max = totalPages;
+  document.getElementById('rangeTo').max = totalPages;
+  clearResults();
+}
+
+function resetFile() {
+  pdfBytes = null; pdfDoc = null; totalPages = 0; originalName = '';
+  fileInfo.classList.remove('show');
+  uploadArea.style.display = '';
+  fileInput.value = '';
+  document.getElementById('btnSplit').disabled = true;
+  document.getElementById('btnMerge').disabled = true;
+  document.getElementById('rangeList').innerHTML = '';
+  mergeRanges = [];
+  clearResults();
+}
+
+function clearResults() {
+  document.getElementById('splitResults').classList.remove('show');
+  document.getElementById('mergeResults').classList.remove('show');
+  document.getElementById('splitList').innerHTML = '';
+  document.getElementById('mergeList').innerHTML = '';
+}
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// Split mode toggle
+document.querySelectorAll('input[name="splitMode"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    document.querySelectorAll('.split-option').forEach(o => o.classList.remove('active'));
+    document.getElementById('opt-' + radio.value).classList.add('active');
+  });
+});
+
+// Parse ranges string
+function parseRanges(str, max) {
+  const ranges = [];
+  const parts = str.split(/[,，;；]+/).map(s => s.trim()).filter(Boolean);
+  for (const part of parts) {
+    const m = part.match(/^(\d+)\s*[-–—~到]\s*(\d+)$/);
+    if (m) {
+      const from = parseInt(m[1]), to = parseInt(m[2]);
+      if (from < 1 || to < from || to > max) return { error: `范围 ${part} 无效（总共 ${max} 页）` };
+      ranges.push([from, to]);
+    } else {
+      const n = parseInt(part);
+      if (isNaN(n) || n < 1 || n > max) return { error: `"${part}" 无效` };
+      ranges.push([n, n]);
+    }
+  }
+  return { ranges };
+}
+
+// Split
+document.getElementById('btnSplit').addEventListener('click', async () => {
+  const mode = document.querySelector('input[name="splitMode"]:checked').value;
+  let ranges = [];
+
+  if (mode === 'every') {
+    const n = parseInt(document.getElementById('everyN').value);
+    if (!n || n < 1) { showToast('请输入有效的页数'); return; }
+    for (let i = 0; i < totalPages; i += n) {
+      ranges.push([i + 1, Math.min(i + n, totalPages)]);
+    }
+  } else {
+    const text = document.getElementById('customRanges').value.trim();
+    if (!text) { showToast('请输入页码范围'); return; }
+    const parsed = parseRanges(text, totalPages);
+    if (parsed.error) { showToast(parsed.error); return; }
+    ranges = parsed.ranges;
+  }
+
+  const btn = document.getElementById('btnSplit');
+  btn.disabled = true;
+  btn.textContent = '处理中…';
+  const progressBar = document.getElementById('splitProgress');
+  const progressFill = progressBar.querySelector('.progress-fill');
+  progressBar.classList.add('show');
+  const list = document.getElementById('splitList');
+  list.innerHTML = '';
+
+  const results = [];
+  for (let i = 0; i < ranges.length; i++) {
+    const [from, to] = ranges[i];
+    const newDoc = await PDFDocument.create();
+    const indices = [];
+    for (let p = from - 1; p < to; p++) indices.push(p);
+    const copied = await newDoc.copyPages(pdfDoc, indices);
+    copied.forEach(page => newDoc.addPage(page));
+    const bytes = await newDoc.save();
+    const name = `${originalName}_第${from}-${to}页.pdf`;
+    results.push({ name, bytes, from, to, pageCount: to - from + 1 });
+    progressFill.style.width = ((i + 1) / ranges.length * 100) + '%';
+  }
+
+  results.forEach(r => {
+    list.appendChild(createResultItem(r.name, `第 ${r.from}-${r.to} 页，共 ${r.pageCount} 页`, r.bytes));
+  });
+
+  if (results.length > 1) {
+    const allBtn = document.createElement('button');
+    allBtn.className = 'btn btn-secondary btn-sm';
+    allBtn.style.marginTop = '12px';
+    allBtn.textContent = '全部下载';
+    allBtn.addEventListener('click', () => results.forEach(r => downloadBlob(r.bytes, r.name)));
+    list.appendChild(allBtn);
+  }
+
+  document.getElementById('splitResults').classList.add('show');
+  btn.disabled = false;
+  btn.textContent = '开始拆分';
+  progressBar.classList.remove('show');
+  showToast(`拆分完成，共 ${results.length} 个文件`);
+});
+
+// Merge ranges
+let mergeRanges = [];
+
+document.getElementById('btnAddRange').addEventListener('click', addRange);
+document.getElementById('rangeFrom').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('rangeTo').focus(); });
+document.getElementById('rangeTo').addEventListener('keydown', e => { if (e.key === 'Enter') addRange(); });
+
+function addRange() {
+  const from = parseInt(document.getElementById('rangeFrom').value);
+  const to = parseInt(document.getElementById('rangeTo').value);
+  if (!from || !to || from < 1 || to < from || to > totalPages) {
+    showToast(`请输入有效范围（1 - ${totalPages}）`);
+    return;
+  }
+  mergeRanges.push([from, to]);
+  renderRanges();
+  document.getElementById('rangeFrom').value = '';
+  document.getElementById('rangeTo').value = '';
+  document.getElementById('rangeFrom').focus();
+  document.getElementById('btnMerge').disabled = false;
+}
+
+function renderRanges() {
+  const list = document.getElementById('rangeList');
+  list.innerHTML = '';
+  mergeRanges.forEach((r, i) => {
+    const div = document.createElement('div');
+    div.className = 'range-item';
+    div.innerHTML = `
+      <span>第 ${r[0]} - ${r[1]} 页 <span style="color:#86868b">(${r[1]-r[0]+1} 页)</span></span>
+      <button class="remove-range" data-i="${i}">&times;</button>
+    `;
+    list.appendChild(div);
+  });
+  list.querySelectorAll('.remove-range').forEach(btn => {
+    btn.addEventListener('click', () => {
+      mergeRanges.splice(parseInt(btn.dataset.i), 1);
+      renderRanges();
+      if (!mergeRanges.length) document.getElementById('btnMerge').disabled = true;
+    });
+  });
+}
+
+document.getElementById('btnClearRanges').addEventListener('click', () => {
+  mergeRanges = [];
+  renderRanges();
+  document.getElementById('btnMerge').disabled = true;
+  document.getElementById('mergeResults').classList.remove('show');
+});
+
+document.getElementById('btnMerge').addEventListener('click', async () => {
+  if (!mergeRanges.length) return;
+  const btn = document.getElementById('btnMerge');
+  btn.disabled = true;
+  btn.textContent = '处理中…';
+  const progressBar = document.getElementById('mergeProgress');
+  const progressFill = progressBar.querySelector('.progress-fill');
+  progressBar.classList.add('show');
+
+  const newDoc = await PDFDocument.create();
+  let totalCopied = 0;
+  const totalToCopy = mergeRanges.reduce((s, r) => s + (r[1] - r[0] + 1), 0);
+
+  for (const [from, to] of mergeRanges) {
+    const indices = [];
+    for (let p = from - 1; p < to; p++) indices.push(p);
+    const copied = await newDoc.copyPages(pdfDoc, indices);
+    copied.forEach(page => { newDoc.addPage(page); totalCopied++; });
+    progressFill.style.width = (totalCopied / totalToCopy * 100) + '%';
+  }
+
+  const bytes = await newDoc.save();
+  const label = mergeRanges.map(r => `${r[0]}-${r[1]}`).join('+');
+  const name = `${originalName}_合并_${label}.pdf`;
+
+  const list = document.getElementById('mergeList');
+  list.innerHTML = '';
+  list.appendChild(createResultItem(name, `共 ${totalCopied} 页`, bytes));
+  document.getElementById('mergeResults').classList.add('show');
+
+  btn.disabled = false;
+  btn.textContent = '合并并下载';
+  progressBar.classList.remove('show');
+  showToast(`合并完成，共 ${totalCopied} 页`);
+});
+
+// Helpers
+function createResultItem(name, detail, bytes) {
+  const div = document.createElement('div');
+  div.className = 'result-item';
+  div.innerHTML = `
+    <div class="r-icon">✅</div>
+    <div class="r-info">
+      <div class="r-name">${name}</div>
+      <div class="r-detail">${detail} · ${(bytes.byteLength/1024/1024).toFixed(1)} MB</div>
+    </div>
+  `;
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-primary btn-sm';
+  btn.textContent = '下载';
+  btn.addEventListener('click', () => downloadBlob(bytes, name));
+  div.appendChild(btn);
+  return div;
+}
+
+function downloadBlob(bytes, name) {
+  const blob = new Blob([bytes], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
