@@ -2,670 +2,548 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PDF 工具箱 — 拆分 & 合并</title>
-<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PDF 工具箱 · 本地处理不上传</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600;700&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
-  background: #f5f5f7;
-  color: #1d1d1f;
-  min-height: 100vh;
+:root{
+  --bg:#0f0f0f; --surface:rgba(255,255,255,.04); --surface2:rgba(255,255,255,.06);
+  --border:#2a2724; --border2:#3a352f;
+  --text:#e8e4df; --muted:#9a9590; --faint:#6d6862;
+  --gold:#d4a574; --gold-deep:#b88a55; --pink:#e8b4b8; --ink:#1a140c;
+  --radius:14px; --radius-sm:10px;
 }
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 40px 20px;
-}
-h1 {
-  text-align: center;
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-.subtitle {
-  text-align: center;
-  color: #86868b;
-  font-size: 14px;
-  margin-bottom: 32px;
-}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',-apple-system,'PingFang SC',sans-serif;min-height:100vh;position:relative;overflow-x:hidden}
+.blob{position:fixed;border-radius:50%;filter:blur(80px);z-index:0;pointer-events:none}
+.b1{width:420px;height:420px;background:var(--gold);opacity:.16;top:-160px;right:-120px}
+.b2{width:380px;height:380px;background:var(--pink);opacity:.10;bottom:-160px;left:-120px}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:48px 24px 80px}
+header{margin-bottom:14px}
+.logo{font-family:'Cormorant',serif;font-weight:700;font-size:42px;line-height:1;color:var(--text)}
+.logo b{color:var(--gold);font-weight:700}
+.tagline{font-size:13.5px;color:var(--muted);margin-top:10px;letter-spacing:.04em}
+.trust{display:inline-flex;align-items:center;gap:7px;margin-top:18px;font-size:12px;color:var(--gold);background:rgba(212,165,116,.08);border:1px solid rgba(212,165,116,.25);padding:6px 14px;border-radius:99px}
+.trust svg{width:14px;height:14px}
 
-/* Upload area */
-.upload-area {
-  border: 2px dashed #d2d2d7;
-  border-radius: 16px;
-  padding: 48px 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: #fff;
-  margin-bottom: 24px;
-}
-.upload-area:hover, .upload-area.dragover {
-  border-color: #0071e3;
-  background: #f0f7ff;
-}
-.upload-area .icon { font-size: 48px; margin-bottom: 12px; }
-.upload-area p { color: #86868b; font-size: 15px; }
-.upload-area .filename {
-  color: #1d1d1f;
-  font-weight: 600;
-  font-size: 16px;
-  margin-top: 8px;
-}
-#fileInput { display: none; }
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:14px;margin-top:34px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;cursor:pointer;transition:.18s;display:flex;flex-direction:column;gap:10px;text-align:left}
+.card:hover{border-color:var(--gold-deep);background:var(--surface2);transform:translateY(-2px)}
+.card .ic{width:30px;height:30px;color:var(--gold)}
+.card .ic svg{width:100%;height:100%}
+.card h3{font-size:15.5px;font-weight:500;color:var(--text)}
+.card p{font-size:12px;color:var(--muted);line-height:1.5}
 
-/* File info */
-.file-info {
-  display: none;
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin-bottom: 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  align-items: center;
-  gap: 12px;
-}
-.file-info.show { display: flex; }
-.file-info .meta { flex: 1; }
-.file-info .name { font-weight: 600; font-size: 15px; }
-.file-info .pages { color: #86868b; font-size: 13px; margin-top: 2px; }
-.file-info .remove {
-  background: none; border: none; cursor: pointer;
-  color: #ff3b30; font-size: 20px; padding: 4px 8px;
-}
+.tool{display:none}
+.tool.active{display:block}
+.home.hide{display:none}
+.back{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:20px;padding:6px 0;transition:.15s}
+.back:hover{color:var(--gold)}
+.back svg{width:16px;height:16px}
+.tool-head{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+.tool-head .ic{width:34px;height:34px;color:var(--gold)}
+.tool-head h2{font-family:'Cormorant',serif;font-size:30px;font-weight:600}
+.tool-desc{font-size:13px;color:var(--muted);margin-bottom:24px}
 
-/* Tabs */
-.tabs {
-  display: flex;
-  gap: 0;
-  margin-bottom: 24px;
-}
-.tab-btn {
-  flex: 1;
-  padding: 14px;
-  border: none;
-  background: #e8e8ed;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 600;
-  transition: all 0.2s;
-  color: #86868b;
-}
-.tab-btn:first-child { border-radius: 10px 0 0 10px; }
-.tab-btn:last-child { border-radius: 0 10px 10px 0; }
-.tab-btn.active {
-  background: #0071e3;
-  color: #fff;
-}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px}
+.drop{border:1.5px dashed var(--border2);border-radius:var(--radius-sm);padding:42px 20px;text-align:center;cursor:pointer;transition:.18s;color:var(--muted)}
+.drop:hover,.drop.over{border-color:var(--gold);background:rgba(212,165,116,.05);color:var(--text)}
+.drop svg{width:38px;height:38px;color:var(--gold-deep);margin-bottom:12px}
+.drop .big{font-size:15px;color:var(--text);margin-bottom:4px}
+.drop .sm{font-size:12px;color:var(--faint)}
 
-/* Panels */
-.panel {
-  display: none;
-  background: #fff;
-  border-radius: 16px;
-  padding: 28px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-.panel.active { display: block; }
+.opts{display:flex;flex-direction:column;gap:16px;margin-top:22px}
+.opt-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.opt-row label{font-size:13px;color:var(--muted);min-width:96px}
+input[type=text],input[type=number],select{background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:9px 12px;border-radius:8px;font-size:13px;font-family:inherit;outline:none;transition:.15s}
+input:focus,select:focus{border-color:var(--gold)}
+input[type=number]{width:90px}
+input[type=text]{flex:1;min-width:160px}
+.radio-grp{display:flex;gap:8px;flex-wrap:wrap}
+.radio-grp label{display:inline-flex;align-items:center;gap:6px;min-width:auto;background:var(--bg);border:1px solid var(--border2);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text);transition:.15s}
+.radio-grp label:has(input:checked){border-color:var(--gold);background:rgba(212,165,116,.08);color:var(--gold)}
+.radio-grp input{accent-color:var(--gold)}
+.range-row{display:flex;align-items:center;gap:12px}
+input[type=range]{flex:1;accent-color:var(--gold)}
 
-.panel h2 {
-  font-size: 18px;
-  margin-bottom: 6px;
-}
-.panel .desc {
-  color: #86868b;
-  font-size: 13px;
-  margin-bottom: 20px;
-  line-height: 1.5;
-}
+.btn{background:var(--gold);color:var(--ink);border:none;border-radius:9px;padding:12px 28px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{background:#e0b585}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn svg{width:17px;height:17px}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text)}
+.btn-ghost:hover{border-color:var(--gold);background:rgba(212,165,116,.06)}
+.actions{margin-top:24px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 
-/* Split mode */
-.split-mode { margin-bottom: 20px; }
-.split-mode label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border: 1.5px solid #d2d2d7;
-  border-radius: 10px;
-  cursor: pointer;
-  margin-bottom: 8px;
-  transition: all 0.2s;
-  font-size: 14px;
-}
-.split-mode label:hover { border-color: #0071e3; }
-.split-mode input[type="radio"]:checked + span { color: #0071e3; font-weight: 600; }
-.split-mode label:has(input:checked) { border-color: #0071e3; background: #f0f7ff; }
+.filelist{margin-top:18px;display:flex;flex-direction:column;gap:8px}
+.fileitem{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px}
+.fileitem .fn{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fileitem .fs{color:var(--faint);font-size:12px}
+.fileitem .rm{background:none;border:none;color:var(--faint);cursor:pointer;font-size:16px;line-height:1;padding:0 4px}
+.fileitem .rm:hover{color:var(--pink)}
+.fileitem .mv{background:none;border:none;color:var(--faint);cursor:pointer;padding:0 2px}
+.fileitem .mv:hover{color:var(--gold)}
+.fileitem .mv svg{width:15px;height:15px}
 
-.split-options { margin-top: 16px; }
-.split-option { display: none; margin-bottom: 16px; }
-.split-option.active { display: block; }
+.status{margin-top:18px;font-size:13px;color:var(--muted);min-height:20px}
+.status.ok{color:var(--gold)}
+.status.err{color:var(--pink)}
 
-/* Inputs */
-input[type="text"], input[type="number"] {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1.5px solid #d2d2d7;
-  border-radius: 10px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-input:focus { border-color: #0071e3; }
-.input-hint {
-  color: #86868b;
-  font-size: 12px;
-  margin-top: 6px;
-}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;margin-top:20px}
+.thumb{position:relative;border:2px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;background:#fff;transition:.15s}
+.thumb canvas{width:100%;display:block}
+.thumb:hover{border-color:var(--gold-deep)}
+.thumb.sel{border-color:var(--gold)}
+.thumb .ord{position:absolute;top:5px;left:5px;background:var(--gold);color:var(--ink);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500}
+.thumb .pg{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:11px;text-align:center;padding:2px}
 
-/* Merge ranges */
-.range-list { margin-bottom: 16px; }
-.range-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  background: #f5f5f7;
-  padding: 10px 14px;
-  border-radius: 10px;
-}
-.range-item span { font-size: 14px; flex: 1; }
-.range-item .remove-range {
-  background: none; border: none; cursor: pointer;
-  color: #ff3b30; font-size: 18px;
-}
-.add-range-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.add-range-row input {
-  width: 80px;
-  text-align: center;
-}
-.add-range-row .sep {
-  color: #86868b;
-  font-size: 14px;
-}
-
-/* Buttons */
-.btn {
-  padding: 12px 28px;
-  border: none;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-primary {
-  background: #0071e3;
-  color: #fff;
-}
-.btn-primary:hover { background: #0077ed; }
-.btn-primary:disabled {
-  background: #d2d2d7;
-  cursor: not-allowed;
-}
-.btn-secondary {
-  background: #e8e8ed;
-  color: #1d1d1f;
-}
-.btn-secondary:hover { background: #d2d2d7; }
-.btn-sm {
-  padding: 8px 16px;
-  font-size: 13px;
-}
-
-.action-row {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-/* Results */
-.results {
-  display: none;
-  margin-top: 24px;
-}
-.results.show { display: block; }
-.results h3 {
-  font-size: 16px;
-  margin-bottom: 12px;
-}
-.result-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: #f0faf0;
-  border-radius: 10px;
-  margin-bottom: 8px;
-}
-.result-item .r-icon { font-size: 24px; }
-.result-item .r-info { flex: 1; }
-.result-item .r-name { font-weight: 600; font-size: 14px; }
-.result-item .r-detail { color: #86868b; font-size: 12px; margin-top: 2px; }
-.result-item .btn { white-space: nowrap; }
-
-/* Progress */
-.progress-bar {
-  display: none;
-  height: 4px;
-  background: #e8e8ed;
-  border-radius: 2px;
-  margin-top: 16px;
-  overflow: hidden;
-}
-.progress-bar.show { display: block; }
-.progress-fill {
-  height: 100%;
-  background: #0071e3;
-  border-radius: 2px;
-  transition: width 0.3s;
-  width: 0%;
-}
-
-/* Toast */
-.toast {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%) translateY(100px);
-  background: #1d1d1f;
-  color: #fff;
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-size: 14px;
-  transition: transform 0.3s;
-  z-index: 100;
-}
-.toast.show { transform: translateX(-50%) translateY(0); }
+#sigPad{background:#fff;border-radius:8px;border:1px solid var(--border2);touch-action:none;width:100%;max-width:460px;display:block;cursor:crosshair}
+.hint{font-size:12px;color:var(--faint);margin-top:6px;line-height:1.6}
+.note-warn{font-size:12px;color:var(--gold);background:rgba(212,165,116,.07);border:1px solid rgba(212,165,116,.2);border-radius:8px;padding:10px 14px;margin-top:14px;line-height:1.6}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(212,165,116,.3);border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+footer{text-align:center;color:var(--faint);font-size:12px;margin-top:60px;line-height:1.8}
 </style>
 </head>
 <body>
+<div class="blob b1"></div><div class="blob b2"></div>
+<div class="wrap">
 
-<div class="container">
-  <h1>PDF 工具箱</h1>
-  <p class="subtitle">拆分 & 合并，纯浏览器本地处理，文件不上传</p>
+<header>
+  <div class="logo">PDF <b>工具箱</b></div>
+  <div class="tagline">合并 · 拆分 · 旋转 · 删页 · 重排 · 图片转PDF · PDF转图片 · 页码 · 水印 · 签名 · 压缩</div>
+  <div class="trust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 3v6c0 5-3.5 8-8 11-4.5-3-8-6-8-11V5l8-3z"/></svg> 全程在你的浏览器本地处理，文件不上传、不离开你的电脑</div>
+</header>
 
-  <!-- Upload -->
-  <div class="upload-area" id="uploadArea">
-    <div class="icon">📄</div>
-    <p>点击选择或拖拽 PDF 文件到这里</p>
-  </div>
-  <input type="file" id="fileInput" accept=".pdf">
+<div class="home" id="home"></div>
 
-  <!-- File info -->
-  <div class="file-info" id="fileInfo">
-    <div style="font-size:32px">📎</div>
-    <div class="meta">
-      <div class="name" id="fileName"></div>
-      <div class="pages" id="filePages"></div>
-    </div>
-    <button class="remove" id="removeFile" title="移除文件">&times;</button>
-  </div>
-
-  <!-- Tabs -->
-  <div class="tabs" id="tabs">
-    <button class="tab-btn active" data-tab="split">拆分 PDF</button>
-    <button class="tab-btn" data-tab="merge">合并页面范围</button>
-  </div>
-
-  <!-- Split Panel -->
-  <div class="panel active" id="panel-split">
-    <h2>拆分 PDF</h2>
-    <p class="desc">将一个 PDF 按规则拆成多个独立的 PDF 文件</p>
-
-    <div class="split-mode">
-      <label>
-        <input type="radio" name="splitMode" value="every" checked>
-        <span>每 N 页拆分一个文件</span>
-      </label>
-      <label>
-        <input type="radio" name="splitMode" value="custom">
-        <span>自定义页码范围拆分</span>
-      </label>
-    </div>
-
-    <div class="split-options">
-      <div class="split-option active" id="opt-every">
-        <input type="number" id="everyN" min="1" value="1" placeholder="每几页拆分">
-        <p class="input-hint">例如：输入 15，则每 15 页生成一个 PDF</p>
-      </div>
-      <div class="split-option" id="opt-custom">
-        <input type="text" id="customRanges" placeholder="例如：1-15, 16-30, 31-50">
-        <p class="input-hint">用逗号分隔多个范围，如 1-15, 20-30, 45-60。每个范围生成一个独立 PDF</p>
-      </div>
-    </div>
-
-    <div class="action-row">
-      <button class="btn btn-primary" id="btnSplit" disabled>开始拆分</button>
-    </div>
-    <div class="progress-bar" id="splitProgress"><div class="progress-fill"></div></div>
-    <div class="results" id="splitResults"><h3>拆分结果</h3><div id="splitList"></div></div>
-  </div>
-
-  <!-- Merge Panel -->
-  <div class="panel" id="panel-merge">
-    <h2>合并页面范围</h2>
-    <p class="desc">从 PDF 中选取多段页码范围，合并成一个新的 PDF。<br>例如：第 1-15 页 + 第 25-30 页 + 第 99-105 页 → 合成一个文件</p>
-
-    <div class="range-list" id="rangeList"></div>
-
-    <div class="add-range-row">
-      <input type="number" id="rangeFrom" min="1" placeholder="起始页">
-      <span class="sep">—</span>
-      <input type="number" id="rangeTo" min="1" placeholder="结束页">
-      <button class="btn btn-secondary btn-sm" id="btnAddRange">添加范围</button>
-    </div>
-    <p class="input-hint" style="margin-top:6px">逐段添加需要保留的页码范围</p>
-
-    <div class="action-row">
-      <button class="btn btn-secondary btn-sm" id="btnClearRanges">清空</button>
-      <button class="btn btn-primary" id="btnMerge" disabled>合并并下载</button>
-    </div>
-    <div class="progress-bar" id="mergeProgress"><div class="progress-fill"></div></div>
-    <div class="results" id="mergeResults"><h3>合并结果</h3><div id="mergeList"></div></div>
-  </div>
+<div class="tool" id="toolView">
+  <button class="back" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> 返回全部工具</button>
+  <div class="tool-head"><span class="ic" id="tIcon"></span><h2 id="tName"></h2></div>
+  <div class="tool-desc" id="tDesc"></div>
+  <div id="tBody"></div>
 </div>
 
-<div class="toast" id="toast"></div>
+<footer>PDF 工具箱 · 纯浏览器本地处理，不上传任何文件<br>by Santaya</footer>
+</div>
 
+<script src="vendor/pdf-lib.min.js"></script>
+<script src="vendor/pdf.min.js"></script>
 <script>
-const { PDFDocument } = PDFLib;
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js';
+const { PDFDocument, degrees } = PDFLib;
 
-let pdfBytes = null;
-let pdfDoc = null;
-let totalPages = 0;
-let originalName = '';
+// ───────── 图标 ─────────
+const IC = {
+  merge:'<path d="M9 3H5a2 2 0 0 0-2 2v4M15 3h4a2 2 0 0 1 2 2v4M3 15v4a2 2 0 0 0 2 2h4M21 15v4a2 2 0 0 1-2 2h-4M8 12h8"/>',
+  split:'<path d="M6 3v6a3 3 0 0 0 3 3h6a3 3 0 0 1 3 3v6M6 21v-6M18 3v3"/>',
+  rotate:'<path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>',
+  trash:'<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/>',
+  reorder:'<path d="M3 6h18M3 12h18M3 18h18"/>',
+  img2pdf:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',
+  pdf2img:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l2 2 4-4"/>',
+  number:'<path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/>',
+  watermark:'<path d="M12 2L4 7v10l8 5 8-5V7l-8-5z"/><path d="M8 12h8M9 15h6" stroke-width="1.4" opacity=".7"/>',
+  sign:'<path d="M3 17s3-1 5-4 3-6 4-6 1 4 2 4 2-2 3-2 4 4 4 4"/><path d="M3 21h18"/>',
+  compress:'<path d="M9 9L4 4M9 4v5H4M15 9l5-5M15 4v5h5M9 15l-5 5M9 20v-5H4M15 15l5 5M15 20v-5h5"/>',
+  upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
+  download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+};
+function svg(p,sw){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw||1.8}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;}
 
-// DOM
-const uploadArea = document.getElementById('uploadArea');
-const fileInput = document.getElementById('fileInput');
-const fileInfo = document.getElementById('fileInfo');
-const tabs = document.getElementById('tabs');
+// ───────── 工具清单 ─────────
+const TOOLS = [
+  {id:'merge', ic:'merge', name:'合并 PDF', desc:'把多个 PDF 按顺序合并成一个文件'},
+  {id:'split', ic:'split', name:'拆分 PDF', desc:'把一个 PDF 按每 N 页或指定范围拆成多个'},
+  {id:'rotate', ic:'rotate', name:'旋转页面', desc:'把歪掉的扫描件整体或按页旋转 90°/180°/270°'},
+  {id:'delete', ic:'trash', name:'删除页面', desc:'删掉指定的页（空白页、广告页等）'},
+  {id:'organize', ic:'reorder', name:'提取 / 重排', desc:'缩略图里点选要的页，按点击顺序导出'},
+  {id:'img2pdf', ic:'img2pdf', name:'图片转 PDF', desc:'把多张图片（截图/照片）合成一个 PDF'},
+  {id:'pdf2img', ic:'pdf2img', name:'PDF 转图片', desc:'把每一页导出成 PNG / JPG 图片'},
+  {id:'number', ic:'number', name:'添加页码', desc:'给每页底部加页码，位置和格式可调'},
+  {id:'watermark', ic:'watermark', name:'添加水印', desc:'加文字水印（支持中文），防盗用、标来源'},
+  {id:'sign', ic:'sign', name:'电子签名', desc:'手写签名盖到 PDF 上，不用打印扫描'},
+  {id:'compress', ic:'compress', name:'压缩 PDF', desc:'减小文件体积，方便发邮件（有损，尽力版）'},
+];
 
-// Upload
-uploadArea.addEventListener('click', () => fileInput.click());
-uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
-uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-uploadArea.addEventListener('drop', e => {
-  e.preventDefault();
-  uploadArea.classList.remove('dragover');
-  const file = e.dataTransfer.files[0];
-  if (file && file.type === 'application/pdf') loadFile(file);
-  else showToast('请上传 PDF 文件');
-});
-fileInput.addEventListener('change', () => {
-  if (fileInput.files[0]) loadFile(fileInput.files[0]);
-});
-document.getElementById('removeFile').addEventListener('click', resetFile);
+// ───────── 公共工具 ─────────
+function fmtSize(b){return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(2)+' MB';}
+function dl(bytes,name,type){const blob=new Blob([bytes],{type:type||'application/pdf'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function setStatus(html,cls){const e=document.getElementById('status');if(e){e.className='status'+(cls?' '+cls:'');e.innerHTML=html;}}
+function parseRanges(str,max){
+  const out=[];str.split(',').forEach(part=>{part=part.trim();if(!part)return;const m=part.match(/^(\d+)\s*-\s*(\d+)$/);if(m){let a=+m[1],b=+m[2];if(a>b)[a,b]=[b,a];for(let i=a;i<=b;i++)if(i>=1&&i<=max)out.push(i-1);}else{const n=+part;if(n>=1&&n<=max)out.push(n-1);}});return out;}
 
-async function loadFile(file) {
-  originalName = file.name.replace(/\.pdf$/i, '');
-  pdfBytes = await file.arrayBuffer();
-  try {
-    pdfDoc = await PDFDocument.load(pdfBytes);
-    totalPages = pdfDoc.getPageCount();
-  } catch(e) {
-    showToast('无法读取此 PDF，文件可能已损坏');
-    return;
-  }
-  document.getElementById('fileName').textContent = file.name;
-  document.getElementById('filePages').textContent = `共 ${totalPages} 页 · ${(file.size/1024/1024).toFixed(1)} MB`;
-  fileInfo.classList.add('show');
-  uploadArea.style.display = 'none';
-  document.getElementById('btnSplit').disabled = false;
-  document.getElementById('everyN').max = totalPages;
-  document.getElementById('rangeFrom').max = totalPages;
-  document.getElementById('rangeTo').max = totalPages;
-  clearResults();
+function textToPng(text,{size=48,color='#888',opacity=1,font="'PingFang SC',sans-serif",pad=10}={}){
+  const m=document.createElement('canvas').getContext('2d');
+  m.font=`${size}px ${font}`;const w=Math.ceil(m.measureText(text).width)+pad*2;const h=Math.ceil(size*1.4)+pad*2;
+  const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');
+  ctx.font=`${size}px ${font}`;ctx.textBaseline='middle';ctx.textAlign='center';ctx.globalAlpha=opacity;ctx.fillStyle=color;
+  ctx.fillText(text,w/2,h/2);
+  return {dataUrl:c.toDataURL('image/png'),w,h};
+}
+async function pngBytes(dataUrl){return new Uint8Array(await (await fetch(dataUrl)).arrayBuffer());}
+function fileToDataURL(f){return new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f);});}
+
+function dropzone(id,{accept,multiple,big,sm,onFiles}){
+  setTimeout(()=>{
+    const dz=document.getElementById(id);if(!dz)return;
+    const inp=document.createElement('input');inp.type='file';inp.accept=accept||'';inp.multiple=!!multiple;inp.style.display='none';
+    dz.appendChild(inp);
+    dz.onclick=()=>inp.click();
+    inp.onchange=()=>{if(inp.files.length)onFiles([...inp.files]);inp.value='';};
+    dz.ondragover=e=>{e.preventDefault();dz.classList.add('over');};
+    dz.ondragleave=()=>dz.classList.remove('over');
+    dz.ondrop=e=>{e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files.length)onFiles([...e.dataTransfer.files]);};
+  },0);
+  return `<div class="drop" id="${id}">${svg(IC.upload)}<div class="big">${big||'点击选择或拖拽文件到这里'}</div><div class="sm">${sm||''}</div></div>`;
 }
 
-function resetFile() {
-  pdfBytes = null; pdfDoc = null; totalPages = 0; originalName = '';
-  fileInfo.classList.remove('show');
-  uploadArea.style.display = '';
-  fileInput.value = '';
-  document.getElementById('btnSplit').disabled = true;
-  document.getElementById('btnMerge').disabled = true;
-  document.getElementById('rangeList').innerHTML = '';
-  mergeRanges = [];
-  clearResults();
+// ───────── 路由 ─────────
+function renderHome(){
+  document.getElementById('home').innerHTML='<div class="grid">'+TOOLS.map(t=>
+    `<button class="card" onclick="openTool('${t.id}')"><span class="ic">${svg(IC[t.ic])}</span><h3>${t.name}</h3><p>${t.desc}</p></button>`
+  ).join('')+'</div>';
+}
+function goHome(){document.getElementById('toolView').classList.remove('active');document.getElementById('home').classList.remove('hide');window.scrollTo(0,0);}
+function openTool(id){
+  const t=TOOLS.find(x=>x.id===id);
+  document.getElementById('home').classList.add('hide');
+  document.getElementById('toolView').classList.add('active');
+  document.getElementById('tIcon').innerHTML=svg(IC[t.ic]);
+  document.getElementById('tName').textContent=t.name;
+  document.getElementById('tDesc').textContent=t.desc;
+  document.getElementById('tBody').innerHTML='';
+  window.scrollTo(0,0);
+  BUILD[id]();
 }
 
-function clearResults() {
-  document.getElementById('splitResults').classList.remove('show');
-  document.getElementById('mergeResults').classList.remove('show');
-  document.getElementById('splitList').innerHTML = '';
-  document.getElementById('mergeList').innerHTML = '';
-}
+// ───────── 各工具实现 ─────────
+const BUILD={};
 
-// Tabs
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
-  });
-});
-
-// Split mode toggle
-document.querySelectorAll('input[name="splitMode"]').forEach(radio => {
-  radio.addEventListener('change', () => {
-    document.querySelectorAll('.split-option').forEach(o => o.classList.remove('active'));
-    document.getElementById('opt-' + radio.value).classList.add('active');
-  });
-});
-
-// Parse ranges string
-function parseRanges(str, max) {
-  const ranges = [];
-  const parts = str.split(/[,，;；]+/).map(s => s.trim()).filter(Boolean);
-  for (const part of parts) {
-    const m = part.match(/^(\d+)\s*[-–—~到]\s*(\d+)$/);
-    if (m) {
-      const from = parseInt(m[1]), to = parseInt(m[2]);
-      if (from < 1 || to < from || to > max) return { error: `范围 ${part} 无效（总共 ${max} 页）` };
-      ranges.push([from, to]);
-    } else {
-      const n = parseInt(part);
-      if (isNaN(n) || n < 1 || n > max) return { error: `"${part}" 无效` };
-      ranges.push([n, n]);
-    }
+BUILD.merge=()=>{
+  let files=[];
+  const body=document.getElementById('tBody');
+  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',multiple:true,big:'选择或拖入多个 PDF',sm:'可多选，下面可调整顺序',onFiles:add})}
+    <div class="filelist" id="fl"></div>
+    <div class="actions"><button class="btn" id="run" disabled>${svg(IC.merge)} 合并并下载</button></div>
+    <div class="status" id="status"></div></div>`;
+  function add(fs){files=files.concat(fs.filter(f=>f.type==='application/pdf'));render();}
+  function render(){
+    document.getElementById('fl').innerHTML=files.map((f,i)=>
+      `<div class="fileitem"><button class="mv" onclick="window._mvU(${i})">${svg('<path d="M18 15l-6-6-6 6"/>')}</button><button class="mv" onclick="window._mvD(${i})">${svg('<path d="M6 9l6 6 6-6"/>')}</button><span class="fn">${f.name}</span><span class="fs">${fmtSize(f.size)}</span><button class="rm" onclick="window._rm(${i})">✕</button></div>`).join('');
+    document.getElementById('run').disabled=files.length<2;
   }
-  return { ranges };
-}
+  window._rm=i=>{files.splice(i,1);render();};
+  window._mvU=i=>{if(i>0){[files[i-1],files[i]]=[files[i],files[i-1]];render();}};
+  window._mvD=i=>{if(i<files.length-1){[files[i+1],files[i]]=[files[i],files[i+1]];render();}};
+  document.getElementById('run').onclick=async()=>{
+    setStatus('<span class="spin"></span>合并中…');
+    try{
+      const out=await PDFDocument.create();
+      for(const f of files){const d=await PDFDocument.load(await f.arrayBuffer());const pgs=await out.copyPages(d,d.getPageIndices());pgs.forEach(p=>out.addPage(p));}
+      dl(await out.save(),'合并_'+files.length+'个PDF.pdf');
+      setStatus('✓ 已合并 '+files.length+' 个文件并下载','ok');
+    }catch(e){setStatus('✗ 失败：'+e.message,'err');}
+  };
+};
 
-// Split
-document.getElementById('btnSplit').addEventListener('click', async () => {
-  const mode = document.querySelector('input[name="splitMode"]:checked').value;
-  let ranges = [];
-
-  if (mode === 'every') {
-    const n = parseInt(document.getElementById('everyN').value);
-    if (!n || n < 1) { showToast('请输入有效的页数'); return; }
-    for (let i = 0; i < totalPages; i += n) {
-      ranges.push([i + 1, Math.min(i + n, totalPages)]);
-    }
-  } else {
-    const text = document.getElementById('customRanges').value.trim();
-    if (!text) { showToast('请输入页码范围'); return; }
-    const parsed = parseRanges(text, totalPages);
-    if (parsed.error) { showToast(parsed.error); return; }
-    ranges = parsed.ranges;
-  }
-
-  const btn = document.getElementById('btnSplit');
-  btn.disabled = true;
-  btn.textContent = '处理中…';
-  const progressBar = document.getElementById('splitProgress');
-  const progressFill = progressBar.querySelector('.progress-fill');
-  progressBar.classList.add('show');
-  const list = document.getElementById('splitList');
-  list.innerHTML = '';
-
-  const results = [];
-  for (let i = 0; i < ranges.length; i++) {
-    const [from, to] = ranges[i];
-    const newDoc = await PDFDocument.create();
-    const indices = [];
-    for (let p = from - 1; p < to; p++) indices.push(p);
-    const copied = await newDoc.copyPages(pdfDoc, indices);
-    copied.forEach(page => newDoc.addPage(page));
-    const bytes = await newDoc.save();
-    const name = `${originalName}_第${from}-${to}页.pdf`;
-    results.push({ name, bytes, from, to, pageCount: to - from + 1 });
-    progressFill.style.width = ((i + 1) / ranges.length * 100) + '%';
-  }
-
-  results.forEach(r => {
-    list.appendChild(createResultItem(r.name, `第 ${r.from}-${r.to} 页，共 ${r.pageCount} 页`, r.bytes));
-  });
-
-  if (results.length > 1) {
-    const allBtn = document.createElement('button');
-    allBtn.className = 'btn btn-secondary btn-sm';
-    allBtn.style.marginTop = '12px';
-    allBtn.textContent = '全部下载';
-    allBtn.addEventListener('click', () => results.forEach(r => downloadBlob(r.bytes, r.name)));
-    list.appendChild(allBtn);
-  }
-
-  document.getElementById('splitResults').classList.add('show');
-  btn.disabled = false;
-  btn.textContent = '开始拆分';
-  progressBar.classList.remove('show');
-  showToast(`拆分完成，共 ${results.length} 个文件`);
-});
-
-// Merge ranges
-let mergeRanges = [];
-
-document.getElementById('btnAddRange').addEventListener('click', addRange);
-document.getElementById('rangeFrom').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('rangeTo').focus(); });
-document.getElementById('rangeTo').addEventListener('keydown', e => { if (e.key === 'Enter') addRange(); });
-
-function addRange() {
-  const from = parseInt(document.getElementById('rangeFrom').value);
-  const to = parseInt(document.getElementById('rangeTo').value);
-  if (!from || !to || from < 1 || to < from || to > totalPages) {
-    showToast(`请输入有效范围（1 - ${totalPages}）`);
-    return;
-  }
-  mergeRanges.push([from, to]);
-  renderRanges();
-  document.getElementById('rangeFrom').value = '';
-  document.getElementById('rangeTo').value = '';
-  document.getElementById('rangeFrom').focus();
-  document.getElementById('btnMerge').disabled = false;
-}
-
-function renderRanges() {
-  const list = document.getElementById('rangeList');
-  list.innerHTML = '';
-  mergeRanges.forEach((r, i) => {
-    const div = document.createElement('div');
-    div.className = 'range-item';
-    div.innerHTML = `
-      <span>第 ${r[0]} - ${r[1]} 页 <span style="color:#86868b">(${r[1]-r[0]+1} 页)</span></span>
-      <button class="remove-range" data-i="${i}">&times;</button>
-    `;
-    list.appendChild(div);
-  });
-  list.querySelectorAll('.remove-range').forEach(btn => {
-    btn.addEventListener('click', () => {
-      mergeRanges.splice(parseInt(btn.dataset.i), 1);
-      renderRanges();
-      if (!mergeRanges.length) document.getElementById('btnMerge').disabled = true;
-    });
-  });
-}
-
-document.getElementById('btnClearRanges').addEventListener('click', () => {
-  mergeRanges = [];
-  renderRanges();
-  document.getElementById('btnMerge').disabled = true;
-  document.getElementById('mergeResults').classList.remove('show');
-});
-
-document.getElementById('btnMerge').addEventListener('click', async () => {
-  if (!mergeRanges.length) return;
-  const btn = document.getElementById('btnMerge');
-  btn.disabled = true;
-  btn.textContent = '处理中…';
-  const progressBar = document.getElementById('mergeProgress');
-  const progressFill = progressBar.querySelector('.progress-fill');
-  progressBar.classList.add('show');
-
-  const newDoc = await PDFDocument.create();
-  let totalCopied = 0;
-  const totalToCopy = mergeRanges.reduce((s, r) => s + (r[1] - r[0] + 1), 0);
-
-  for (const [from, to] of mergeRanges) {
-    const indices = [];
-    for (let p = from - 1; p < to; p++) indices.push(p);
-    const copied = await newDoc.copyPages(pdfDoc, indices);
-    copied.forEach(page => { newDoc.addPage(page); totalCopied++; });
-    progressFill.style.width = (totalCopied / totalToCopy * 100) + '%';
-  }
-
-  const bytes = await newDoc.save();
-  const label = mergeRanges.map(r => `${r[0]}-${r[1]}`).join('+');
-  const name = `${originalName}_合并_${label}.pdf`;
-
-  const list = document.getElementById('mergeList');
-  list.innerHTML = '';
-  list.appendChild(createResultItem(name, `共 ${totalCopied} 页`, bytes));
-  document.getElementById('mergeResults').classList.add('show');
-
-  btn.disabled = false;
-  btn.textContent = '合并并下载';
-  progressBar.classList.remove('show');
-  showToast(`合并完成，共 ${totalCopied} 页`);
-});
-
-// Helpers
-function createResultItem(name, detail, bytes) {
-  const div = document.createElement('div');
-  div.className = 'result-item';
-  div.innerHTML = `
-    <div class="r-icon">✅</div>
-    <div class="r-info">
-      <div class="r-name">${name}</div>
-      <div class="r-detail">${detail} · ${(bytes.byteLength/1024/1024).toFixed(1)} MB</div>
+BUILD.split=()=>{
+  let file=null;const body=document.getElementById('tBody');
+  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入一个 PDF',onFiles:f=>{file=f[0];document.getElementById('info').textContent='已选：'+file.name;document.getElementById('run').disabled=false;}})}
+    <div class="status" id="info" style="margin-top:14px"></div>
+    <div class="opts">
+      <div class="radio-grp"><label><input type="radio" name="mode" value="n" checked> 每 N 页一个文件</label><label><input type="radio" name="mode" value="r"> 自定义页码范围</label></div>
+      <div class="opt-row" id="rowN"><label>每几页</label><input type="number" id="n" value="1" min="1"></div>
+      <div class="opt-row" id="rowR" style="display:none"><label>范围</label><input type="text" id="r" placeholder="如 1-3,5,8-10（每段导一个文件）"></div>
     </div>
-  `;
-  const btn = document.createElement('button');
-  btn.className = 'btn btn-primary btn-sm';
-  btn.textContent = '下载';
-  btn.addEventListener('click', () => downloadBlob(bytes, name));
-  div.appendChild(btn);
-  return div;
-}
+    <div class="actions"><button class="btn" id="run" disabled>${svg(IC.split)} 拆分并下载</button></div>
+    <div class="status" id="status"></div></div>`;
+  body.querySelectorAll('input[name=mode]').forEach(r=>r.onchange=()=>{const v=document.querySelector('input[name=mode]:checked').value;document.getElementById('rowN').style.display=v==='n'?'flex':'none';document.getElementById('rowR').style.display=v==='r'?'flex':'none';});
+  document.getElementById('run').onclick=async()=>{
+    setStatus('<span class="spin"></span>拆分中…');
+    try{
+      const src=await PDFDocument.load(await file.arrayBuffer());const total=src.getPageCount();
+      const mode=document.querySelector('input[name=mode]:checked').value;
+      let groups=[];
+      if(mode==='n'){const n=Math.max(1,+document.getElementById('n').value);for(let i=0;i<total;i+=n)groups.push(Array.from({length:Math.min(n,total-i)},(_,k)=>i+k));}
+      else{const segs=document.getElementById('r').value.split(',').map(s=>s.trim()).filter(Boolean);for(const seg of segs){const idx=parseRanges(seg,total);if(idx.length)groups.push(idx);}}
+      if(!groups.length){setStatus('✗ 没有有效的页范围','err');return;}
+      const base=file.name.replace(/\.pdf$/i,'');
+      for(let g=0;g<groups.length;g++){const out=await PDFDocument.create();const pgs=await out.copyPages(src,groups[g]);pgs.forEach(p=>out.addPage(p));dl(await out.save(),`${base}_part${g+1}.pdf`);await sleep(350);}
+      setStatus('✓ 已拆成 '+groups.length+' 个文件并下载','ok');
+    }catch(e){setStatus('✗ 失败：'+e.message,'err');}
+  };
+};
 
-function downloadBlob(bytes, name) {
-  const blob = new Blob([bytes], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
-}
+BUILD.rotate=()=>{
+  let file=null;const body=document.getElementById('tBody');
+  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入一个 PDF',onFiles:f=>{file=f[0];document.getElementById('info').textContent='已选：'+file.name;document.getElementById('run').disabled=false;}})}
+    <div class="status" id="info" style="margin-top:14px"></div>
+    <div class="opts">
+      <div class="opt-row"><label>旋转角度</label><div class="radio-grp"><label><input type="radio" name="deg" value="90" checked> 顺时针 90°</label><label><input type="radio" name="deg" value="180"> 180°</label><label><input type="radio" name="deg" value="270"> 逆时针 90°</label></div></div>
+      <div class="opt-row"><label>应用范围</label><input type="text" id="pages" placeholder="留空=全部；或 1-3,5"></div>
+    </div>
+    <div class="actions"><button class="btn" id="run" disabled>${svg(IC.rotate)} 旋转并下载</button></div>
+    <div class="status" id="status"></div></div>`;
+  document.getElementById('run').onclick=async()=>{
+    setStatus('<span class="spin"></span>处理中…');
+    try{
+      const doc=await PDFDocument.load(await file.arrayBuffer());const total=doc.getPageCount();
+      const deg=+document.querySelector('input[name=deg]:checked').value;
+      const pv=document.getElementById('pages').value.trim();
+      const idx=pv?parseRanges(pv,total):doc.getPageIndices();
+      idx.forEach(i=>{const p=doc.getPage(i);p.setRotation(degrees((p.getRotation().angle+deg)%360));});
+      dl(await doc.save(),file.name.replace(/\.pdf$/i,'')+'_旋转.pdf');
+      setStatus('✓ 已旋转 '+idx.length+' 页并下载','ok');
+    }catch(e){setStatus('✗ 失败：'+e.message,'err');}
+  };
+};
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
+BUILD.delete=()=>{
+  let file=null;const body=document.getElementById('tBody');
+  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入一个 PDF',onFiles:f=>{file=f[0];document.getElementById('info').textContent='已选：'+file.name;document.getElementById('run').disabled=false;}})}
+    <div class="status" id="info" style="margin-top:14px"></div>
+    <div class="opts"><div class="opt-row"><label>删除这些页</label><input type="text" id="pages" placeholder="如 1,3,5-7"></div></div>
+    <div class="actions"><button class="btn" id="run" disabled>${svg(IC.trash)} 删除并下载</button></div>
+    <div class="status" id="status"></div></div>`;
+  document.getElementById('run').onclick=async()=>{
+    setStatus('<span class="spin"></span>处理中…');
+    try{
+      const doc=await PDFDocument.load(await file.arrayBuffer());const total=doc.getPageCount();
+      const del=new Set(parseRanges(document.getElementById('pages').value,total));
+      if(!del.size){setStatus('✗ 请填要删除的页','err');return;}
+      if(del.size>=total){setStatus('✗ 不能删除全部页','err');return;}
+      [...del].sort((a,b)=>b-a).forEach(i=>doc.removePage(i));
+      dl(await doc.save(),file.name.replace(/\.pdf$/i,'')+'_已删页.pdf');
+      setStatus('✓ 已删除 '+del.size+' 页，剩 '+(total-del.size)+' 页','ok');
+    }catch(e){setStatus('✗ 失败：'+e.message,'err');}
+  };
+};
+
+BUILD.organize=()=>{
+  let file=null,order=[];const body=document.getElementById('tBody');
+  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入一个 PDF',sm:'加载后点缩略图按顺序选页',onFiles:load})}
+    <div class="hint" id="hint" style="display:none">点击页面缩略图加入导出（再次点击取消）。导出顺序 = 你点击的顺序。</div>
+    <div class="thumbs" id="thumbs"></div>
+    <div class="actions" id="acts" style="display:none"><button class="btn" id="run">${svg(IC.download)} 导出选中页</button><button class="btn btn-ghost" id="clr">清空选择</button></div>
+    <div class="status" id="status"></div></div>`;
+  async function load(f){
+    file=f[0];order=[];document.getElementById('hint').style.display='block';document.getElementById('acts').style.display='flex';
+    setStatus('<span class="spin"></span>生成缩略图…');
+    const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+    const wrap=document.getElementById('thumbs');wrap.innerHTML='';
+    for(let i=1;i<=pdf.numPages;i++){
+      const page=await pdf.getPage(i);const vp=page.getViewport({scale:.4});
+      const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
+      await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+      const d=document.createElement('div');d.className='thumb';d.dataset.p=i;
+      d.appendChild(c);const pg=document.createElement('div');pg.className='pg';pg.textContent='第 '+i+' 页';d.appendChild(pg);
+      d.onclick=()=>toggle(i);wrap.appendChild(d);
+    }
+    setStatus('共 '+pdf.numPages+' 页，点击选择');
+  }
+  function toggle(i){const pos=order.indexOf(i);if(pos>=0)order.splice(pos,1);else order.push(i);refresh();}
+  function refresh(){
+    document.querySelectorAll('.thumb').forEach(d=>{
+      const i=+d.dataset.p;const pos=order.indexOf(i);
+      d.classList.toggle('sel',pos>=0);
+      let o=d.querySelector('.ord');
+      if(pos>=0){if(!o){o=document.createElement('div');o.className='ord';d.appendChild(o);}o.textContent=pos+1;}
+      else if(o)o.remove();
+    });
+    setStatus(order.length?'已选 '+order.length+' 页：'+order.join(', '):'未选页');
+  }
+  document.getElementById('clr').onclick=()=>{order=[];refresh();};
+  document.getElementById('run').onclick=async()=>{
+    if(!order.length){setStatus('✗ 还没选页','err');return;}
+    setStatus('<span class="spin"></span>导出中…');
+    try{
+      const src=await PDFDocument.load(await file.arrayBuffer());const out=await PDFDocument.create();
+      const pgs=await out.copyPages(src,order.map(i=>i-1));pgs.forEach(p=>out.addPage(p));
+      dl(await out.save(),file.name.replace(/\.pdf$/i,'')+'_提取'+order.length+'页.pdf');
+      setStatus('✓ 已导出 '+order.length+' 页','ok');
+    }catch(e){setStatus('✗ 失败：'+e.message,'err');}
+  };
+};
+
+BUILD.img2pdf=()=>{
+  let imgs=[];const body=document.getElementById('tBody');
+  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'image/*',multiple:true,big:'选择或拖入多张图片',sm:'JPG / PNG，按顺序成页',onFiles:add})}
+    <div class="filelist" id="fl"></div>
+    <div class="opts"><div class="opt-row"><label>页面大小</label><div class="radio-grp"><label><input type="radio" name="fit" value="img" checked> 跟随图片尺寸</label><label><input type="radio" name="fit" value="a4"> 统一 A4</label></div></div></div>
+    <div class="actions"><button class="btn" id="run" disabled>${svg(IC.img2pdf)} 生成 PDF</button></div>
+    <div class="status" id="status"></div></div>`;
+  function add(fs){imgs=imgs.concat(fs.filter(f=>f.type.startsWith('image/')));render();}
+  function render(){document.getElementById('fl').innerHTML=imgs.map((f,i)=>`<div class="fileitem"><button class="mv" onclick="window._u(${i})">${svg('<path d="M18 15l-6-6-6 6"/>')}</button><button class="mv" onclick="window._d(${i})">${svg('<path d="M6 9l6 6 6-6"/>')}</button><span class="fn">${f.name}</span><span class="fs">${fmtSize(f.size)}</span><button class="rm" onclick="window._x(${i})">✕</button></div>`).join('');document.getElementById('run').disabled=!imgs.length;}
+  window._x=i=>{imgs.splice(i,1);render();};window._u=i=>{if(i>0){[imgs[i-1],imgs[i]]=[imgs[i],imgs[i-1]];render();}};window._d=i=>{if(i<imgs.length-1){[imgs[i+1],imgs[i]]=[imgs[i],imgs[i+1]];render();}};
+  document.getElementById('run').onclick=async()=>{
+    setStatus('<span class="spin"></span>生成中…');
+    try{
+      const a4=document.querySelector('input[name=fit]:checked').value==='a4';const doc=await PDFDocument.create();
+      for(const f of imgs){let img;const bytes=new Uint8Array(await f.arrayBuffer());
+        try{img=f.type==='image/png'?await doc.embedPng(bytes):await doc.embedJpg(bytes);}catch(_){img=await doc.embedPng(await pngBytes(await fileToDataURL(f)));}
+        if(a4){const p=doc.addPage([595.28,841.89]);const s=Math.min(p.getWidth()/img.width,p.getHeight()/img.height)*0.92;const w=img.width*s,h=img.height*s;p.drawImage(img,{x:(p.getWidth()-w)/2,y:(p.getHeight()-h)/2,width:w,height:h});}
+        else{const p=doc.addPage([img.width,img.height]);p.drawImage(img,{x:0,y:0,width:img.width,height:img.height});}
+      }
+      dl(await doc.save(),'图片合成_'+imgs.length+'页.pdf');
+      setStatus('✓ 已生成 '+imgs.length+' 页 PDF','ok');
+    }catch(e){setStatus('✗ 失败：'+e.message,'err');}
+  };
+};
+
+BUILD.pdf2img=()=>{
+  let file=null;const body=document.getElementById('tBody');
+  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入一个 PDF',onFiles:f=>{file=f[0];document.getElementById('info').textContent='已选：'+file.name;document.getElementById('run').disabled=false;}})}
+    <div class="status" id="info" style="margin-top:14px"></div>
+    <div class="opts"><div class="opt-row"><label>清晰度</label><div class="radio-grp"><label><input type="radio" name="sc" value="1.5"> 普通</label><label><input type="radio" name="sc" value="2" checked> 高清</label><label><input type="radio" name="sc" value="3"> 超清</label></div></div>
+    <div class="opt-row"><label>格式</label><div class="radio-grp"><label><input type="radio" name="fmt" value="png" checked> PNG</label><label><input type="radio" name="fmt" value="jpg"> JPG</label></div></div></div>
+    <div class="actions"><button class="btn" id="run" disabled>${svg(IC.pdf2img)} 导出图片</button></div>
+    <div class="note-warn">页数多时会逐张下载，浏览器可能提示"允许多个下载"，点允许即可。</div>
+    <div class="status" id="status"></div></div>`;
+  document.getElementById('run').onclick=async()=>{
+    setStatus('<span class="spin"></span>渲染中…');
+    try{
+      const scale=+document.querySelector('input[name=sc]:checked').value;const fmt=document.querySelector('input[name=fmt]:checked').value;
+      const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;const base=file.name.replace(/\.pdf$/i,'');
+      for(let i=1;i<=pdf.numPages;i++){
+        setStatus(`<span class="spin"></span>导出第 ${i}/${pdf.numPages} 页…`);
+        const page=await pdf.getPage(i);const vp=page.getViewport({scale});
+        const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;const cx=c.getContext('2d');
+        if(fmt==='jpg'){cx.fillStyle='#fff';cx.fillRect(0,0,c.width,c.height);}
+        await page.render({canvasContext:cx,viewport:vp}).promise;
+        const url=c.toDataURL(fmt==='jpg'?'image/jpeg':'image/png',0.92);
+        dl(await pngBytes(url),`${base}_第${i}页.${fmt}`,fmt==='jpg'?'image/jpeg':'image/png');
+        await sleep(400);
+      }
+      setStatus('✓ 已导出 '+pdf.numPages+' 张图片','ok');
+    }catch(e){setStatus('✗ 失败：'+e.message,'err');}
+  };
+};
+
+BUILD.number=()=>{
+  let file=null;const body=document.getElementById('tBody');
+  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入一个 PDF',onFiles:f=>{file=f[0];document.getElementById('info').textContent='已选：'+file.name;document.getElementById('run').disabled=false;}})}
+    <div class="status" id="info" style="margin-top:14px"></div>
+    <div class="opts">
+      <div class="opt-row"><label>格式</label><div class="radio-grp"><label><input type="radio" name="fmt" value="n" checked> 1, 2, 3</label><label><input type="radio" name="fmt" value="cn"> 第 1 页</label><label><input type="radio" name="fmt" value="tot"> 1 / N</label></div></div>
+      <div class="opt-row"><label>位置</label><div class="radio-grp"><label><input type="radio" name="pos" value="bc" checked> 底部居中</label><label><input type="radio" name="pos" value="br"> 右下</label><label><input type="radio" name="pos" value="bl"> 左下</label></div></div>
+    </div>
+    <div class="actions"><button class="btn" id="run" disabled>${svg(IC.number)} 添加并下载</button></div>
+    <div class="status" id="status"></div></div>`;
+  document.getElementById('run').onclick=async()=>{
+    setStatus('<span class="spin"></span>处理中…');
+    try{
+      const doc=await PDFDocument.load(await file.arrayBuffer());const total=doc.getPageCount();
+      const fmt=document.querySelector('input[name=fmt]:checked').value;const pos=document.querySelector('input[name=pos]:checked').value;
+      for(let i=0;i<total;i++){
+        const p=doc.getPage(i);const txt=fmt==='cn'?`第 ${i+1} 页`:fmt==='tot'?`${i+1} / ${total}`:`${i+1}`;
+        const {dataUrl,w,h}=textToPng(txt,{size:30,color:'#555'});
+        const img=await doc.embedPng(await pngBytes(dataUrl));const sc=14/h;const dw=w*sc,dh=h*sc;const pw=p.getWidth();
+        const x=pos==='br'?pw-dw-36:pos==='bl'?36:(pw-dw)/2;
+        p.drawImage(img,{x,y:18,width:dw,height:dh});
+      }
+      dl(await doc.save(),file.name.replace(/\.pdf$/i,'')+'_页码.pdf');
+      setStatus('✓ 已给 '+total+' 页加页码','ok');
+    }catch(e){setStatus('✗ 失败：'+e.message,'err');}
+  };
+};
+
+BUILD.watermark=()=>{
+  let file=null;const body=document.getElementById('tBody');
+  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入一个 PDF',onFiles:f=>{file=f[0];document.getElementById('info').textContent='已选：'+file.name;document.getElementById('run').disabled=false;}})}
+    <div class="status" id="info" style="margin-top:14px"></div>
+    <div class="opts">
+      <div class="opt-row"><label>水印文字</label><input type="text" id="txt" placeholder="如：内部资料 / 仅供 XX 使用" value="内部资料"></div>
+      <div class="opt-row"><label>透明度</label><div class="range-row" style="flex:1"><input type="range" id="op" min="5" max="60" value="18"><span id="opv" style="font-size:13px;min-width:38px">18%</span></div></div>
+    </div>
+    <div class="actions"><button class="btn" id="run" disabled>${svg(IC.watermark)} 添加并下载</button></div>
+    <div class="status" id="status"></div></div>`;
+  const op=document.getElementById('op');op.oninput=()=>document.getElementById('opv').textContent=op.value+'%';
+  document.getElementById('run').onclick=async()=>{
+    const txt=document.getElementById('txt').value.trim();if(!txt){setStatus('✗ 请输入水印文字','err');return;}
+    setStatus('<span class="spin"></span>处理中…');
+    try{
+      const doc=await PDFDocument.load(await file.arrayBuffer());
+      const {dataUrl,w,h}=textToPng(txt,{size:80,color:'#888',opacity:+op.value/100});
+      const img=await doc.embedPng(await pngBytes(dataUrl));
+      doc.getPages().forEach(p=>{const pw=p.getWidth(),ph=p.getHeight();const dw=Math.min(pw*0.6,400);const dh=dw*h/w;
+        p.drawImage(img,{x:(pw-dw)/2,y:(ph-dh)/2,width:dw,height:dh,rotate:degrees(35)});});
+      dl(await doc.save(),file.name.replace(/\.pdf$/i,'')+'_水印.pdf');
+      setStatus('✓ 已给 '+doc.getPageCount()+' 页加水印','ok');
+    }catch(e){setStatus('✗ 失败：'+e.message,'err');}
+  };
+};
+
+BUILD.sign=()=>{
+  let file=null,drawing=false,hasSig=false;const body=document.getElementById('tBody');
+  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入要签名的 PDF',onFiles:f=>{file=f[0];document.getElementById('info').textContent='已选：'+file.name;upd();}})}
+    <div class="status" id="info" style="margin-top:14px"></div>
+    <div class="opts">
+      <div><label style="font-size:13px;color:var(--muted)">在下方手写你的签名：</label>
+      <canvas id="sigPad" width="460" height="180" style="margin-top:8px"></canvas>
+      <div class="hint">鼠标 / 手指按住书写。<button class="btn btn-ghost" id="clr" style="padding:5px 14px;font-size:12px;margin-top:8px">清空重写</button></div></div>
+      <div class="opt-row"><label>盖到第几页</label><input type="number" id="pg" value="1" min="1"></div>
+      <div class="opt-row"><label>位置</label><div class="radio-grp"><label><input type="radio" name="pos" value="br" checked> 右下</label><label><input type="radio" name="pos" value="bl"> 左下</label><label><input type="radio" name="pos" value="c"> 居中</label></div></div>
+    </div>
+    <div class="actions"><button class="btn" id="run" disabled>${svg(IC.sign)} 盖签名并下载</button></div>
+    <div class="status" id="status"></div></div>`;
+  const cv=document.getElementById('sigPad'),ctx=cv.getContext('2d');ctx.strokeStyle='#0b1a3a';ctx.lineWidth=2.6;ctx.lineCap='round';ctx.lineJoin='round';
+  function pt(e){const r=cv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:(t.clientX-r.left)*cv.width/r.width,y:(t.clientY-r.top)*cv.height/r.height};}
+  function start(e){e.preventDefault();drawing=true;hasSig=true;const p=pt(e);ctx.beginPath();ctx.moveTo(p.x,p.y);upd();}
+  function move(e){if(!drawing)return;e.preventDefault();const p=pt(e);ctx.lineTo(p.x,p.y);ctx.stroke();}
+  function end(){drawing=false;}
+  cv.onmousedown=start;cv.onmousemove=move;window.addEventListener('mouseup',end);
+  cv.ontouchstart=start;cv.ontouchmove=move;cv.ontouchend=end;
+  document.getElementById('clr').onclick=()=>{ctx.clearRect(0,0,cv.width,cv.height);hasSig=false;upd();};
+  function upd(){document.getElementById('run').disabled=!(file&&hasSig);}
+  document.getElementById('run').onclick=async()=>{
+    setStatus('<span class="spin"></span>处理中…');
+    try{
+      const doc=await PDFDocument.load(await file.arrayBuffer());const total=doc.getPageCount();
+      let pi=Math.min(total,Math.max(1,+document.getElementById('pg').value))-1;
+      const img=await doc.embedPng(await pngBytes(cv.toDataURL('image/png')));
+      const p=doc.getPage(pi);const pw=p.getWidth(),ph=p.getHeight();const dw=Math.min(pw*0.35,180);const dh=dw*cv.height/cv.width;
+      const pos=document.querySelector('input[name=pos]:checked').value;
+      const x=pos==='c'?(pw-dw)/2:pos==='bl'?40:pw-dw-40;const y=pos==='c'?(ph-dh)/2:50;
+      p.drawImage(img,{x,y,width:dw,height:dh});
+      dl(await doc.save(),file.name.replace(/\.pdf$/i,'')+'_已签名.pdf');
+      setStatus('✓ 已盖签名到第 '+(pi+1)+' 页','ok');
+    }catch(e){setStatus('✗ 失败：'+e.message,'err');}
+  };
+};
+
+BUILD.compress=()=>{
+  let file=null;const body=document.getElementById('tBody');
+  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入一个 PDF',onFiles:f=>{file=f[0];document.getElementById('info').textContent='已选：'+file.name+'（'+fmtSize(f.size)+'）';document.getElementById('run').disabled=false;}})}
+    <div class="status" id="info" style="margin-top:14px"></div>
+    <div class="opts"><div class="opt-row"><label>压缩力度</label><div class="radio-grp"><label><input type="radio" name="lv" value="high"> 强（最小）</label><label><input type="radio" name="lv" value="mid" checked> 中</label><label><input type="radio" name="lv" value="low"> 轻（保清晰）</label></div></div></div>
+    <div class="note-warn">⚠️ 这是「尽力版」压缩：把每页转成图片再重组，会变成<b>不可选中文字的扫描件效果</b>，适合"只要能看、要发出去"的场景。要保留可选文字请别用它。</div>
+    <div class="actions"><button class="btn" id="run" disabled>${svg(IC.compress)} 压缩并下载</button></div>
+    <div class="status" id="status"></div></div>`;
+  document.getElementById('run').onclick=async()=>{
+    setStatus('<span class="spin"></span>压缩中…');
+    try{
+      const lv=document.querySelector('input[name=lv]:checked').value;
+      const scale={high:1,mid:1.4,low:2}[lv];const q={high:.5,mid:.65,low:.8}[lv];
+      const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;const out=await PDFDocument.create();
+      for(let i=1;i<=pdf.numPages;i++){
+        setStatus(`<span class="spin"></span>压缩第 ${i}/${pdf.numPages} 页…`);
+        const page=await pdf.getPage(i);const vp=page.getViewport({scale});
+        const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;const cx=c.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,c.width,c.height);
+        await page.render({canvasContext:cx,viewport:vp}).promise;
+        const img=await out.embedJpg(await pngBytes(c.toDataURL('image/jpeg',q)));
+        const pg=out.addPage([img.width,img.height]);pg.drawImage(img,{x:0,y:0,width:img.width,height:img.height});
+      }
+      const bytes=await out.save();
+      const ratio=Math.round((1-bytes.length/file.size)*100);
+      dl(bytes,file.name.replace(/\.pdf$/i,'')+'_压缩.pdf');
+      setStatus(`✓ 完成：${fmtSize(file.size)} → ${fmtSize(bytes.length)}（${ratio>0?'小了 '+ratio+'%':'没变小，原文件已很精简'}）`,'ok');
+    }catch(e){setStatus('✗ 失败：'+e.message,'err');}
+  };
+};
+
+renderHome();
 </script>
 </body>
 </html>
