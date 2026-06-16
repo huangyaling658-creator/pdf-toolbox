@@ -23,8 +23,8 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',-apple-s
 header{margin-bottom:14px}
 .logo{font-family:'Cormorant',serif;font-weight:700;font-size:42px;line-height:1;color:var(--text)}
 .logo b{color:var(--gold);font-weight:700}
-.tagline{font-size:13.5px;color:var(--muted);margin-top:10px;letter-spacing:.04em}
-.trust{display:inline-flex;align-items:center;gap:7px;margin-top:18px;font-size:12px;color:var(--gold);background:rgba(212,165,116,.08);border:1px solid rgba(212,165,116,.25);padding:6px 14px;border-radius:99px}
+.tagline{font-size:14px;color:var(--muted);margin-top:12px;letter-spacing:.04em}
+.trust{display:inline-flex;align-items:center;gap:7px;margin-top:16px;font-size:12px;color:var(--gold);background:rgba(212,165,116,.08);border:1px solid rgba(212,165,116,.25);padding:6px 14px;border-radius:99px}
 .trust svg{width:14px;height:14px}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:14px;margin-top:34px}
@@ -98,10 +98,32 @@ input[type=range]{flex:1;accent-color:var(--gold)}
 .thumb .pg{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:11px;text-align:center;padding:2px}
 
 #sigPad{background:#fff;border-radius:8px;border:1px solid var(--border2);touch-action:none;width:100%;max-width:460px;display:block;cursor:crosshair}
-.hint{font-size:12px;color:var(--faint);margin-top:6px;line-height:1.6}
+.hint{font-size:12px;color:var(--faint);margin-top:8px;line-height:1.8;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .note-warn{font-size:12px;color:var(--gold);background:rgba(212,165,116,.07);border:1px solid rgba(212,165,116,.2);border-radius:8px;padding:10px 14px;margin-top:14px;line-height:1.6}
 .spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(212,165,116,.3);border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+.ptoolbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 0;align-items:center}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;margin-top:18px}
+.rcell{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.rcell canvas{max-width:100%;height:auto;box-shadow:0 2px 10px rgba(0,0,0,.45);background:#fff}
+.rcell .pn{font-size:11px;color:var(--muted)}
+.rbtns{display:flex;gap:6px}
+.rbtns button{background:var(--surface2);border:1px solid var(--border2);color:var(--text);width:32px;height:32px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.rbtns button:hover{border-color:var(--gold);color:var(--gold)}
+.rbtns button svg{width:16px;height:16px}
+.previewbox{position:relative;display:inline-block;margin:0 auto;max-width:100%}
+.previewbox>canvas{display:block;max-width:100%;height:auto;box-shadow:0 4px 20px rgba(0,0,0,.5);background:#fff}
+.wm-ov{position:absolute;top:50%;left:50%;transform-origin:center center;pointer-events:none}
+.wm-ov img{display:block;width:100%}
+.pgnav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px;font-size:13px;color:var(--muted)}
+.pgnav button{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:5px 12px;cursor:pointer}
+.pgnav button:hover{border-color:var(--gold)}
+.signpages{position:relative;max-height:600px;overflow:auto;margin-top:16px;border:1px solid var(--border);border-radius:10px;padding:16px;background:var(--bg)}
+.spage{position:relative;margin:0 auto 16px;width:fit-content}
+.spage>canvas{display:block;box-shadow:0 2px 12px rgba(0,0,0,.45);background:#fff;max-width:100%}
+.sig-ov{position:absolute;cursor:move;border:1.5px dashed var(--gold);background:rgba(212,165,116,.06);touch-action:none;z-index:5}
+.sig-ov img{display:block;width:100%;height:100%;pointer-events:none}
 footer{text-align:center;color:var(--faint);font-size:12px;margin-top:60px;line-height:1.8}
 </style>
 </head>
@@ -111,7 +133,7 @@ footer{text-align:center;color:var(--faint);font-size:12px;margin-top:60px;line-
 
 <header>
   <div class="logo">PDF <b>工具箱</b></div>
-  <div class="tagline">合并 · 拆分 · 旋转 · 删页 · 重排 · 图片转PDF · PDF转图片 · 页码 · 水印 · 签名 · 压缩</div>
+  <div class="tagline">常用 PDF 操作一站搞定，打开即用、所见即所得</div>
   <div class="trust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 3v6c0 5-3.5 8-8 11-4.5-3-8-6-8-11V5l8-3z"/></svg> 全程在你的浏览器本地处理，文件不上传、不离开你的电脑</div>
 </header>
 
@@ -133,7 +155,6 @@ footer{text-align:center;color:var(--faint);font-size:12px;margin-top:60px;line-
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js';
 const { PDFDocument, degrees } = PDFLib;
 
-// ───────── 图标 ─────────
 const IC = {
   merge:'<path d="M9 3H5a2 2 0 0 0-2 2v4M15 3h4a2 2 0 0 1 2 2v4M3 15v4a2 2 0 0 0 2 2h4M21 15v4a2 2 0 0 1-2 2h-4M8 12h8"/>',
   split:'<path d="M6 3v6a3 3 0 0 0 3 3h6a3 3 0 0 1 3 3v6M6 21v-6M18 3v3"/>',
@@ -148,32 +169,31 @@ const IC = {
   compress:'<path d="M9 9L4 4M9 4v5H4M15 9l5-5M15 4v5h5M9 15l-5 5M9 20v-5H4M15 15l5 5M15 20v-5h5"/>',
   upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
   download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+  ccw:'<path d="M9 14l-4-4 4-4"/><path d="M5 10h8a4 4 0 0 1 4 4v2"/>',
+  cw:'<path d="M15 14l4-4-4-4"/><path d="M19 10h-8a4 4 0 0 0-4 4v2"/>',
 };
 function svg(p,sw){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw||1.8}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;}
 
-// ───────── 工具清单 ─────────
 const TOOLS = [
   {id:'merge', ic:'merge', name:'合并 PDF', desc:'把多个 PDF 按顺序合并成一个文件'},
   {id:'split', ic:'split', name:'拆分 PDF', desc:'把一个 PDF 按每 N 页或指定范围拆成多个'},
-  {id:'rotate', ic:'rotate', name:'旋转页面', desc:'把歪掉的扫描件整体或按页旋转 90°/180°/270°'},
+  {id:'rotate', ic:'rotate', name:'旋转页面', desc:'看着每一页，逐页或整体旋转，实时预览'},
   {id:'delete', ic:'trash', name:'删除页面', desc:'删掉指定的页（空白页、广告页等）'},
   {id:'organize', ic:'reorder', name:'提取 / 重排', desc:'缩略图里点选要的页，按点击顺序导出'},
   {id:'img2pdf', ic:'img2pdf', name:'图片转 PDF', desc:'把多张图片（截图/照片）合成一个 PDF'},
   {id:'pdf2img', ic:'pdf2img', name:'PDF 转图片', desc:'把每一页导出成 PNG / JPG 图片'},
   {id:'number', ic:'number', name:'添加页码', desc:'给每页底部加页码，位置和格式可调'},
-  {id:'watermark', ic:'watermark', name:'添加水印', desc:'加文字水印（支持中文），防盗用、标来源'},
-  {id:'sign', ic:'sign', name:'电子签名', desc:'手写签名盖到 PDF 上，不用打印扫描'},
+  {id:'watermark', ic:'watermark', name:'添加水印', desc:'实时预览，调大小/角度/透明度，支持中文'},
+  {id:'sign', ic:'sign', name:'电子签名', desc:'手写签名，拖到任意页任意位置，再下载'},
   {id:'compress', ic:'compress', name:'压缩 PDF', desc:'减小文件体积，方便发邮件（有损，尽力版）'},
 ];
 
-// ───────── 公共工具 ─────────
 function fmtSize(b){return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(2)+' MB';}
 function dl(bytes,name,type){const blob=new Blob([bytes],{type:type||'application/pdf'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function setStatus(html,cls){const e=document.getElementById('status');if(e){e.className='status'+(cls?' '+cls:'');e.innerHTML=html;}}
 function parseRanges(str,max){
   const out=[];str.split(',').forEach(part=>{part=part.trim();if(!part)return;const m=part.match(/^(\d+)\s*-\s*(\d+)$/);if(m){let a=+m[1],b=+m[2];if(a>b)[a,b]=[b,a];for(let i=a;i<=b;i++)if(i>=1&&i<=max)out.push(i-1);}else{const n=+part;if(n>=1&&n<=max)out.push(n-1);}});return out;}
-
 function textToPng(text,{size=48,color='#888',opacity=1,font="'PingFang SC',sans-serif",pad=10}={}){
   const m=document.createElement('canvas').getContext('2d');
   m.font=`${size}px ${font}`;const w=Math.ceil(m.measureText(text).width)+pad*2;const h=Math.ceil(size*1.4)+pad*2;
@@ -184,6 +204,20 @@ function textToPng(text,{size=48,color='#888',opacity=1,font="'PingFang SC',sans
 }
 async function pngBytes(dataUrl){return new Uint8Array(await (await fetch(dataUrl)).arrayBuffer());}
 function fileToDataURL(f){return new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f);});}
+function loadImg(src){return new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.src=src;});}
+async function loadPdfPages(file,scale){
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;const pages=[];
+  for(let i=1;i<=pdf.numPages;i++){
+    const page=await pdf.getPage(i);const vp=page.getViewport({scale});
+    const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
+    await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+    const v1=page.getViewport({scale:1});pages.push({canvas:c,pdfW:v1.width,pdfH:v1.height});
+  }
+  return {pages};
+}
+function drawRotated(dst,src,deg){const r=((deg%360)+360)%360;if(r===90||r===270){dst.width=src.height;dst.height=src.width;}else{dst.width=src.width;dst.height=src.height;}const x=dst.getContext('2d');x.save();x.translate(dst.width/2,dst.height/2);x.rotate(r*Math.PI/180);x.drawImage(src,-src.width/2,-src.height/2);x.restore();}
+async function rotateImage(dataUrl,deg){const img=await loadImg(dataUrl);const r=deg*Math.PI/180;const w=img.width,h=img.height;const bw=Math.abs(w*Math.cos(r))+Math.abs(h*Math.sin(r));const bh=Math.abs(w*Math.sin(r))+Math.abs(h*Math.cos(r));const c=document.createElement('canvas');c.width=bw;c.height=bh;const x=c.getContext('2d');x.translate(bw/2,bh/2);x.rotate(r);x.drawImage(img,-w/2,-h/2);return {dataUrl:c.toDataURL('image/png'),w:bw,h:bh};}
 
 function dropzone(id,{accept,multiple,big,sm,onFiles}){
   setTimeout(()=>{
@@ -199,7 +233,6 @@ function dropzone(id,{accept,multiple,big,sm,onFiles}){
   return `<div class="drop" id="${id}">${svg(IC.upload)}<div class="big">${big||'点击选择或拖拽文件到这里'}</div><div class="sm">${sm||''}</div></div>`;
 }
 
-// ───────── 路由 ─────────
 function renderHome(){
   document.getElementById('home').innerHTML='<div class="grid">'+TOOLS.map(t=>
     `<button class="card" onclick="openTool('${t.id}')"><span class="ic">${svg(IC[t.ic])}</span><h3>${t.name}</h3><p>${t.desc}</p></button>`
@@ -218,12 +251,10 @@ function openTool(id){
   BUILD[id]();
 }
 
-// ───────── 各工具实现 ─────────
 const BUILD={};
 
 BUILD.merge=()=>{
-  let files=[];
-  const body=document.getElementById('tBody');
+  let files=[];const body=document.getElementById('tBody');
   body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',multiple:true,big:'选择或拖入多个 PDF',sm:'可多选，下面可调整顺序',onFiles:add})}
     <div class="filelist" id="fl"></div>
     <div class="actions"><button class="btn" id="run" disabled>${svg(IC.merge)} 合并并下载</button></div>
@@ -277,25 +308,42 @@ BUILD.split=()=>{
 };
 
 BUILD.rotate=()=>{
-  let file=null;const body=document.getElementById('tBody');
-  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入一个 PDF',onFiles:f=>{file=f[0];document.getElementById('info').textContent='已选：'+file.name;document.getElementById('run').disabled=false;}})}
+  let file=null,base=[],rots=[];const body=document.getElementById('tBody');
+  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入一个 PDF',sm:'加载后可看到每一页，逐页或整体旋转',onFiles:load})}
     <div class="status" id="info" style="margin-top:14px"></div>
-    <div class="opts">
-      <div class="opt-row"><label>旋转角度</label><div class="radio-grp"><label><input type="radio" name="deg" value="90" checked> 顺时针 90°</label><label><input type="radio" name="deg" value="180"> 180°</label><label><input type="radio" name="deg" value="270"> 逆时针 90°</label></div></div>
-      <div class="opt-row"><label>应用范围</label><input type="text" id="pages" placeholder="留空=全部；或 1-3,5"></div>
-    </div>
-    <div class="actions"><button class="btn" id="run" disabled>${svg(IC.rotate)} 旋转并下载</button></div>
+    <div class="ptoolbar" id="bar" style="display:none"><button class="btn btn-ghost" id="allL">${svg(IC.ccw)} 全部逆时针</button><button class="btn btn-ghost" id="allR">${svg(IC.cw)} 全部顺时针</button></div>
+    <div class="rgrid" id="grid"></div>
+    <div class="actions" id="acts" style="display:none"><button class="btn" id="run">${svg(IC.download)} 应用旋转并下载</button></div>
     <div class="status" id="status"></div></div>`;
+  async function load(f){
+    file=f[0];document.getElementById('info').textContent='已选：'+file.name;
+    setStatus('<span class="spin"></span>渲染页面…');
+    try{
+      const {pages}=await loadPdfPages(file,1.1);base=pages.map(p=>p.canvas);rots=pages.map(()=>0);
+      const grid=document.getElementById('grid');grid.innerHTML='';
+      pages.forEach((p,i)=>{
+        const cell=document.createElement('div');cell.className='rcell';
+        const cvw=document.createElement('canvas');cvw.id='rc'+i;cvw.style.maxWidth='130px';
+        const btns=document.createElement('div');btns.className='rbtns';
+        btns.innerHTML=`<button title="逆时针 90°" onclick="window._rot(${i},-90)">${svg(IC.ccw)}</button><button title="顺时针 90°" onclick="window._rot(${i},90)">${svg(IC.cw)}</button>`;
+        const pn=document.createElement('div');pn.className='pn';pn.textContent='第 '+(i+1)+' 页';
+        cell.appendChild(cvw);cell.appendChild(btns);cell.appendChild(pn);grid.appendChild(cell);
+        drawRotated(cvw,base[i],0);
+      });
+      document.getElementById('bar').style.display='flex';document.getElementById('acts').style.display='flex';
+      setStatus('共 '+pages.length+' 页，点每页下方箭头旋转，实时看效果');
+    }catch(e){setStatus('✗ 渲染失败：'+e.message,'err');}
+  }
+  window._rot=(i,d)=>{rots[i]=(rots[i]+d+360)%360;drawRotated(document.getElementById('rc'+i),base[i],rots[i]);};
+  document.getElementById('allL').onclick=()=>base.forEach((_,i)=>window._rot(i,-90));
+  document.getElementById('allR').onclick=()=>base.forEach((_,i)=>window._rot(i,90));
   document.getElementById('run').onclick=async()=>{
     setStatus('<span class="spin"></span>处理中…');
     try{
-      const doc=await PDFDocument.load(await file.arrayBuffer());const total=doc.getPageCount();
-      const deg=+document.querySelector('input[name=deg]:checked').value;
-      const pv=document.getElementById('pages').value.trim();
-      const idx=pv?parseRanges(pv,total):doc.getPageIndices();
-      idx.forEach(i=>{const p=doc.getPage(i);p.setRotation(degrees((p.getRotation().angle+deg)%360));});
+      const doc=await PDFDocument.load(await file.arrayBuffer());
+      doc.getPages().forEach((p,i)=>{if(rots[i])p.setRotation(degrees((p.getRotation().angle+rots[i])%360));});
       dl(await doc.save(),file.name.replace(/\.pdf$/i,'')+'_旋转.pdf');
-      setStatus('✓ 已旋转 '+idx.length+' 页并下载','ok');
+      setStatus('✓ 已应用旋转并下载','ok');
     }catch(e){setStatus('✗ 失败：'+e.message,'err');}
   };
 };
@@ -329,29 +377,23 @@ BUILD.organize=()=>{
     <div class="actions" id="acts" style="display:none"><button class="btn" id="run">${svg(IC.download)} 导出选中页</button><button class="btn btn-ghost" id="clr">清空选择</button></div>
     <div class="status" id="status"></div></div>`;
   async function load(f){
-    file=f[0];order=[];document.getElementById('hint').style.display='block';document.getElementById('acts').style.display='flex';
+    file=f[0];order=[];document.getElementById('hint').style.display='flex';document.getElementById('acts').style.display='flex';
     setStatus('<span class="spin"></span>生成缩略图…');
-    const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
-    const wrap=document.getElementById('thumbs');wrap.innerHTML='';
-    for(let i=1;i<=pdf.numPages;i++){
-      const page=await pdf.getPage(i);const vp=page.getViewport({scale:.4});
-      const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
-      await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
-      const d=document.createElement('div');d.className='thumb';d.dataset.p=i;
-      d.appendChild(c);const pg=document.createElement('div');pg.className='pg';pg.textContent='第 '+i+' 页';d.appendChild(pg);
-      d.onclick=()=>toggle(i);wrap.appendChild(d);
-    }
-    setStatus('共 '+pdf.numPages+' 页，点击选择');
+    try{
+      const {pages}=await loadPdfPages(file,.4);
+      const wrap=document.getElementById('thumbs');wrap.innerHTML='';
+      pages.forEach((p,k)=>{const i=k+1;
+        const d=document.createElement('div');d.className='thumb';d.dataset.p=i;
+        const c=document.createElement('canvas');c.width=p.canvas.width;c.height=p.canvas.height;c.getContext('2d').drawImage(p.canvas,0,0);
+        d.appendChild(c);const pg=document.createElement('div');pg.className='pg';pg.textContent='第 '+i+' 页';d.appendChild(pg);
+        d.onclick=()=>toggle(i);wrap.appendChild(d);
+      });
+      setStatus('共 '+pages.length+' 页，点击选择');
+    }catch(e){setStatus('✗ 渲染失败：'+e.message,'err');}
   }
   function toggle(i){const pos=order.indexOf(i);if(pos>=0)order.splice(pos,1);else order.push(i);refresh();}
   function refresh(){
-    document.querySelectorAll('.thumb').forEach(d=>{
-      const i=+d.dataset.p;const pos=order.indexOf(i);
-      d.classList.toggle('sel',pos>=0);
-      let o=d.querySelector('.ord');
-      if(pos>=0){if(!o){o=document.createElement('div');o.className='ord';d.appendChild(o);}o.textContent=pos+1;}
-      else if(o)o.remove();
-    });
+    document.querySelectorAll('.thumb').forEach(d=>{const i=+d.dataset.p;const pos=order.indexOf(i);d.classList.toggle('sel',pos>=0);let o=d.querySelector('.ord');if(pos>=0){if(!o){o=document.createElement('div');o.className='ord';d.appendChild(o);}o.textContent=pos+1;}else if(o)o.remove();});
     setStatus(order.length?'已选 '+order.length+' 页：'+order.join(', '):'未选页');
   }
   document.getElementById('clr').onclick=()=>{order=[];refresh();};
@@ -450,25 +492,56 @@ BUILD.number=()=>{
 };
 
 BUILD.watermark=()=>{
-  let file=null;const body=document.getElementById('tBody');
-  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入一个 PDF',onFiles:f=>{file=f[0];document.getElementById('info').textContent='已选：'+file.name;document.getElementById('run').disabled=false;}})}
+  let file=null,pages=[],cur=0;const body=document.getElementById('tBody');
+  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入一个 PDF',sm:'加载后实时预览水印效果',onFiles:load})}
     <div class="status" id="info" style="margin-top:14px"></div>
-    <div class="opts">
-      <div class="opt-row"><label>水印文字</label><input type="text" id="txt" placeholder="如：内部资料 / 仅供 XX 使用" value="内部资料"></div>
-      <div class="opt-row"><label>透明度</label><div class="range-row" style="flex:1"><input type="range" id="op" min="5" max="60" value="18"><span id="opv" style="font-size:13px;min-width:38px">18%</span></div></div>
+    <div id="prev" style="display:none;text-align:center;margin-top:18px">
+      <div class="previewbox" id="pbox"><canvas id="pcv"></canvas><div class="wm-ov" id="ov"><img id="ovimg"></div></div>
+      <div class="pgnav"><button id="prevp">‹ 上一页</button><span id="pgind"></span><button id="nextp">下一页 ›</button></div>
     </div>
-    <div class="actions"><button class="btn" id="run" disabled>${svg(IC.watermark)} 添加并下载</button></div>
+    <div class="opts" id="ctrls" style="display:none">
+      <div class="opt-row"><label>水印文字</label><input type="text" id="txt" value="内部资料"></div>
+      <div class="opt-row"><label>大小</label><div class="range-row" style="flex:1"><input type="range" id="sz" min="15" max="100" value="45"><span id="szv" style="font-size:13px;min-width:42px">45%</span></div></div>
+      <div class="opt-row"><label>角度</label><div class="range-row" style="flex:1"><input type="range" id="ang" min="0" max="90" value="35"><span id="angv" style="font-size:13px;min-width:42px">35°</span></div></div>
+      <div class="opt-row"><label>透明度</label><div class="range-row" style="flex:1"><input type="range" id="op" min="5" max="60" value="18"><span id="opv" style="font-size:13px;min-width:42px">18%</span></div></div>
+    </div>
+    <div class="actions" id="acts" style="display:none"><button class="btn" id="run">${svg(IC.watermark)} 应用到全部页并下载</button></div>
     <div class="status" id="status"></div></div>`;
-  const op=document.getElementById('op');op.oninput=()=>document.getElementById('opv').textContent=op.value+'%';
+  async function load(f){
+    file=f[0];document.getElementById('info').textContent='已选：'+file.name;
+    setStatus('<span class="spin"></span>渲染预览…');
+    try{
+      const r=await loadPdfPages(file,1.3);pages=r.pages;cur=0;
+      document.getElementById('prev').style.display='block';document.getElementById('ctrls').style.display='flex';document.getElementById('acts').style.display='flex';
+      showPage();updateWm();setStatus('共 '+pages.length+' 页，调下面参数实时预览（水印会加到所有页）');
+    }catch(e){setStatus('✗ 渲染失败：'+e.message,'err');}
+  }
+  function showPage(){const cv=document.getElementById('pcv');const b=pages[cur].canvas;cv.width=b.width;cv.height=b.height;cv.style.maxWidth='520px';cv.getContext('2d').drawImage(b,0,0);document.getElementById('pgind').textContent=(cur+1)+' / '+pages.length;}
+  function updateWm(){
+    const txt=document.getElementById('txt').value||' ';
+    const t=textToPng(txt,{size:80,color:'#777'});
+    document.getElementById('ovimg').src=t.dataUrl;
+    const ov=document.getElementById('ov');const sz=+document.getElementById('sz').value;const ang=+document.getElementById('ang').value;const op=+document.getElementById('op').value;
+    const pw=document.getElementById('pcv').clientWidth;
+    ov.style.width=(pw*sz/100)+'px';
+    ov.style.transform=`translate(-50%,-50%) rotate(${ang}deg)`;
+    ov.style.opacity=op/100;
+    document.getElementById('szv').textContent=sz+'%';document.getElementById('angv').textContent=ang+'°';document.getElementById('opv').textContent=op+'%';
+  }
+  ['txt','sz','ang','op'].forEach(id=>document.getElementById(id).addEventListener('input',updateWm));
+  document.getElementById('prevp').onclick=()=>{if(cur>0){cur--;showPage();updateWm();}};
+  document.getElementById('nextp').onclick=()=>{if(cur<pages.length-1){cur++;showPage();updateWm();}};
   document.getElementById('run').onclick=async()=>{
     const txt=document.getElementById('txt').value.trim();if(!txt){setStatus('✗ 请输入水印文字','err');return;}
     setStatus('<span class="spin"></span>处理中…');
     try{
+      const sz=+document.getElementById('sz').value,ang=+document.getElementById('ang').value,op=+document.getElementById('op').value;
+      const baseImg=textToPng(txt,{size:120,color:'#777'});
+      const rot=await rotateImage(baseImg.dataUrl,ang);
       const doc=await PDFDocument.load(await file.arrayBuffer());
-      const {dataUrl,w,h}=textToPng(txt,{size:80,color:'#888',opacity:+op.value/100});
-      const img=await doc.embedPng(await pngBytes(dataUrl));
-      doc.getPages().forEach(p=>{const pw=p.getWidth(),ph=p.getHeight();const dw=Math.min(pw*0.6,400);const dh=dw*h/w;
-        p.drawImage(img,{x:(pw-dw)/2,y:(ph-dh)/2,width:dw,height:dh,rotate:degrees(35)});});
+      const img=await doc.embedPng(await pngBytes(rot.dataUrl));
+      doc.getPages().forEach(p=>{const pw=p.getWidth(),ph=p.getHeight();const dw=pw*sz/100;const dh=dw*rot.h/rot.w;
+        p.drawImage(img,{x:(pw-dw)/2,y:(ph-dh)/2,width:dw,height:dh,opacity:op/100});});
       dl(await doc.save(),file.name.replace(/\.pdf$/i,'')+'_水印.pdf');
       setStatus('✓ 已给 '+doc.getPageCount()+' 页加水印','ok');
     }catch(e){setStatus('✗ 失败：'+e.message,'err');}
@@ -476,39 +549,71 @@ BUILD.watermark=()=>{
 };
 
 BUILD.sign=()=>{
-  let file=null,drawing=false,hasSig=false;const body=document.getElementById('tBody');
-  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入要签名的 PDF',onFiles:f=>{file=f[0];document.getElementById('info').textContent='已选：'+file.name;upd();}})}
+  let file=null,pages=[],sigUrl=null,drawing=false,hasSig=false;const body=document.getElementById('tBody');
+  body.innerHTML=`<div class="panel">${dropzone('dz',{accept:'application/pdf',big:'选择或拖入要签名的 PDF',sm:'加载后会显示所有页面',onFiles:load})}
     <div class="status" id="info" style="margin-top:14px"></div>
-    <div class="opts">
-      <div><label style="font-size:13px;color:var(--muted)">在下方手写你的签名：</label>
-      <canvas id="sigPad" width="460" height="180" style="margin-top:8px"></canvas>
-      <div class="hint">鼠标 / 手指按住书写。<button class="btn btn-ghost" id="clr" style="padding:5px 14px;font-size:12px;margin-top:8px">清空重写</button></div></div>
-      <div class="opt-row"><label>盖到第几页</label><input type="number" id="pg" value="1" min="1"></div>
-      <div class="opt-row"><label>位置</label><div class="radio-grp"><label><input type="radio" name="pos" value="br" checked> 右下</label><label><input type="radio" name="pos" value="bl"> 左下</label><label><input type="radio" name="pos" value="c"> 居中</label></div></div>
+    <div id="step2" style="display:none;margin-top:18px">
+      <label style="font-size:13px;color:var(--muted)">① 手写签名：</label>
+      <canvas id="sigPad" width="460" height="170" style="margin-top:8px"></canvas>
+      <div class="hint">鼠标 / 手指书写。<button class="btn btn-ghost" id="clr" style="padding:5px 14px;font-size:12px">清空</button><button class="btn" id="place" style="padding:5px 16px;font-size:12px" disabled>② 确定，去页面放置</button></div>
+      <div class="opt-row" id="szrow" style="display:none;margin-top:6px"><label>签名大小</label><div class="range-row" style="flex:1;max-width:320px"><input type="range" id="sz" min="60" max="340" value="160"></div></div>
+      <div class="hint" id="ph" style="display:none">③ 把金色虚线框的签名拖到任意页的任意位置，然后点下方下载。</div>
     </div>
-    <div class="actions"><button class="btn" id="run" disabled>${svg(IC.sign)} 盖签名并下载</button></div>
+    <div class="signpages" id="pages" style="display:none"></div>
+    <div class="actions" id="acts" style="display:none"><button class="btn" id="run">${svg(IC.sign)} 盖签名并下载</button></div>
     <div class="status" id="status"></div></div>`;
   const cv=document.getElementById('sigPad'),ctx=cv.getContext('2d');ctx.strokeStyle='#0b1a3a';ctx.lineWidth=2.6;ctx.lineCap='round';ctx.lineJoin='round';
   function pt(e){const r=cv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:(t.clientX-r.left)*cv.width/r.width,y:(t.clientY-r.top)*cv.height/r.height};}
-  function start(e){e.preventDefault();drawing=true;hasSig=true;const p=pt(e);ctx.beginPath();ctx.moveTo(p.x,p.y);upd();}
-  function move(e){if(!drawing)return;e.preventDefault();const p=pt(e);ctx.lineTo(p.x,p.y);ctx.stroke();}
-  function end(){drawing=false;}
-  cv.onmousedown=start;cv.onmousemove=move;window.addEventListener('mouseup',end);
-  cv.ontouchstart=start;cv.ontouchmove=move;cv.ontouchend=end;
-  document.getElementById('clr').onclick=()=>{ctx.clearRect(0,0,cv.width,cv.height);hasSig=false;upd();};
-  function upd(){document.getElementById('run').disabled=!(file&&hasSig);}
+  function sdown(e){e.preventDefault();drawing=true;hasSig=true;const p=pt(e);ctx.beginPath();ctx.moveTo(p.x,p.y);document.getElementById('place').disabled=false;}
+  function smove(e){if(!drawing)return;e.preventDefault();const p=pt(e);ctx.lineTo(p.x,p.y);ctx.stroke();}
+  cv.onmousedown=sdown;cv.onmousemove=smove;window.addEventListener('mouseup',()=>drawing=false);
+  cv.ontouchstart=sdown;cv.ontouchmove=smove;cv.ontouchend=()=>drawing=false;
+  document.getElementById('clr').onclick=()=>{ctx.clearRect(0,0,cv.width,cv.height);hasSig=false;document.getElementById('place').disabled=true;};
+  async function load(f){
+    file=f[0];document.getElementById('info').textContent='已选：'+file.name;document.getElementById('step2').style.display='block';
+    setStatus('<span class="spin"></span>渲染页面…');
+    try{
+      const r=await loadPdfPages(file,1.3);pages=r.pages;
+      const wrap=document.getElementById('pages');wrap.innerHTML='';
+      pages.forEach((p,i)=>{const sp=document.createElement('div');sp.className='spage';sp.dataset.i=i;
+        const c=document.createElement('canvas');c.width=p.canvas.width;c.height=p.canvas.height;c.style.width=Math.min(p.canvas.width,640)+'px';c.getContext('2d').drawImage(p.canvas,0,0);
+        sp.appendChild(c);wrap.appendChild(sp);});
+      wrap.style.display='block';setStatus('共 '+pages.length+' 页，先在上方手写签名');
+    }catch(e){setStatus('✗ 渲染失败：'+e.message,'err');}
+  }
+  document.getElementById('place').onclick=()=>{
+    if(!hasSig)return;sigUrl=cv.toDataURL('image/png');
+    document.getElementById('szrow').style.display='flex';document.getElementById('ph').style.display='flex';document.getElementById('acts').style.display='flex';
+    let ov=document.getElementById('sigOv');if(ov)ov.remove();
+    ov=document.createElement('div');ov.className='sig-ov';ov.id='sigOv';
+    const w=+document.getElementById('sz').value;ov.style.width=w+'px';ov.style.height=(w*cv.height/cv.width)+'px';ov.style.left='40px';ov.style.top='40px';
+    ov.innerHTML=`<img src="${sigUrl}">`;
+    (document.querySelector('.spage')||document.getElementById('pages')).appendChild(ov);
+    dragify(ov);
+  };
+  document.getElementById('sz').addEventListener('input',()=>{const ov=document.getElementById('sigOv');if(ov){const w=+document.getElementById('sz').value;ov.style.width=w+'px';ov.style.height=(w*cv.height/cv.width)+'px';}});
+  function dragify(ov){
+    let sx,sy,ol,ot;
+    function down(e){e.preventDefault();const t=e.touches?e.touches[0]:e;sx=t.clientX;sy=t.clientY;ol=ov.offsetLeft;ot=ov.offsetTop;document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);document.addEventListener('touchmove',mv,{passive:false});document.addEventListener('touchend',up);}
+    function mv(e){const t=e.touches?e.touches[0]:e;e.preventDefault();let nl=ol+(t.clientX-sx),nt=ot+(t.clientY-sy);
+      const cx=t.clientX,cy=t.clientY;
+      for(const sp of document.querySelectorAll('.spage')){const r=sp.getBoundingClientRect();if(cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom){if(sp!==ov.parentElement)sp.appendChild(ov);const pr=ov.parentElement.getBoundingClientRect();nl=cx-pr.left-ov.offsetWidth/2;nt=cy-pr.top-ov.offsetHeight/2;break;}}
+      ov.style.left=nl+'px';ov.style.top=nt+'px';}
+    function up(){document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);document.removeEventListener('touchmove',mv);document.removeEventListener('touchend',up);}
+    ov.addEventListener('mousedown',down);ov.addEventListener('touchstart',down,{passive:false});
+  }
   document.getElementById('run').onclick=async()=>{
+    const ov=document.getElementById('sigOv');if(!ov||!ov.parentElement.classList.contains('spage')){setStatus('✗ 请先把签名拖到某一页上','err');return;}
     setStatus('<span class="spin"></span>处理中…');
     try{
-      const doc=await PDFDocument.load(await file.arrayBuffer());const total=doc.getPageCount();
-      let pi=Math.min(total,Math.max(1,+document.getElementById('pg').value))-1;
-      const img=await doc.embedPng(await pngBytes(cv.toDataURL('image/png')));
-      const p=doc.getPage(pi);const pw=p.getWidth(),ph=p.getHeight();const dw=Math.min(pw*0.35,180);const dh=dw*cv.height/cv.width;
-      const pos=document.querySelector('input[name=pos]:checked').value;
-      const x=pos==='c'?(pw-dw)/2:pos==='bl'?40:pw-dw-40;const y=pos==='c'?(ph-dh)/2:50;
-      p.drawImage(img,{x,y,width:dw,height:dh});
+      const sp=ov.parentElement;const pi=+sp.dataset.i;const cvp=sp.querySelector('canvas');
+      const scale=pages[pi].pdfW/cvp.clientWidth;
+      const x=ov.offsetLeft*scale,w=ov.offsetWidth*scale,h=ov.offsetHeight*scale,y=pages[pi].pdfH-ov.offsetTop*scale-h;
+      const doc=await PDFDocument.load(await file.arrayBuffer());
+      const img=await doc.embedPng(await pngBytes(sigUrl));
+      doc.getPage(pi).drawImage(img,{x,y,width:w,height:h});
       dl(await doc.save(),file.name.replace(/\.pdf$/i,'')+'_已签名.pdf');
-      setStatus('✓ 已盖签名到第 '+(pi+1)+' 页','ok');
+      setStatus('✓ 已把签名盖到第 '+(pi+1)+' 页','ok');
     }catch(e){setStatus('✗ 失败：'+e.message,'err');}
   };
 };
